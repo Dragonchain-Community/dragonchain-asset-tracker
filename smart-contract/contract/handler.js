@@ -2,7 +2,7 @@
 
 module.exports = async (input, callback) => {    
     const dcsdk = require("dragonchain-sdk");
-    const helper = require("../../common/js/asset-tracker-helper");    
+    const helper = require("../common/js/asset-tracker-helper");    
 
     // Parse the request //
     let inputObj = JSON.parse(input);
@@ -59,10 +59,11 @@ module.exports = async (input, callback) => {
                 {
                     "response": {
                         "requestTransactionId": inputObj.header.txn_id, 
-                        "custodian": {
+                        "asset_group": {
                             "id": inputObj.header.txn_id,
-                            "name": inCustodian.name,
-                            "type": inCustodian.type
+                            "custodianId": inAssetGroup.custodianId,
+                            "name": inAssetGroup.name,
+                            "description": inAssetGroup.description
                         }
                     }
                 }
