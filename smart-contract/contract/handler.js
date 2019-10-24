@@ -18,9 +18,9 @@ module.exports = async (input, callback) => {
             if (inCustodian.type == "authority")
             {
                 // Be sure there isn't already an authority record //
-                const custodians = await helper.getCustodiansByType(client, "authority")
+                const custodians = await helper.getCustodiansByType(client, {type:"authority"})
 
-                if (custodians.length == 0)                
+                if (custodians.length > 0)                
                     throw "An authority record already exists for this contract instance.";                
             } 
 
@@ -50,7 +50,23 @@ module.exports = async (input, callback) => {
             const inAssetGroup = inputObj.payload.parameters.asset_group;
 
             // Check that custodian is the authority //
+            const custodian = await helper.getCurrentCustodianObject(client, {custodianId: inAssetGroup.custodianId});
 
+            if (custodian.type != "authority")
+                throw "Only the authority custodian may create asset groups.";
+
+            callback(undefined, 
+                {
+                    "response": {
+                        "requestTransactionId": inputObj.header.txn_id, 
+                        "custodian": {
+                            "id": inputObj.header.txn_id,
+                            "name": inCustodian.name,
+                            "type": inCustodian.type
+                        }
+                    }
+                }
+            );
 
         } else {
             callback("Invalid method or no method specified", {"OUTPUT_TO_CHAIN":false});
@@ -59,7 +75,7 @@ module.exports = async (input, callback) => {
     {
         callback(exception,
             {
-                "response": {
+                "error": {
                     "requestTransactionId": inputObj.header.txn_id, 
                     "exception": exception
                 }
