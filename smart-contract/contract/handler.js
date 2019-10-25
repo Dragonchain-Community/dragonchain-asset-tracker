@@ -71,6 +71,7 @@ module.exports = async (input, callback) => {
         } else if (inputObj.payload.method == "create_asset")
         {
             const inAsset = inputObj.payload.parameters.asset;
+            const inAssetExternalData = typeof inputObj.payload.parameters.asset_external_data !== "undefined" ? inputObj.payload.parameters.asset_external_data : undefined;
 
             // Check that custodian is the authority //
             let custodian = await helper.getCurrentCustodianObject(client, {custodianId: inAsset.custodianId});
@@ -93,13 +94,13 @@ module.exports = async (input, callback) => {
                 }
             }
 
-            if (inAsset.asset_external_data)
+            if (inAssetExternalData)
             {
                 responseObj.asset_external_data = {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,
-                    "externalId": inAsset.asset_external_data.externalId,
-                    "externalData": inAsset.asset_external_data.externalData,
+                    "externalId": inAssetExternalData.externalId,
+                    "externalData": inAssetExternalData.externalData,
                 }
             }
 
