@@ -133,7 +133,11 @@ module.exports = async (input, callback) => {
             // Create the asset object to be written to heap //
             const assetKey = `asset-${inputObj.header.txn_id}`;
 
-            const asset = responseObj.asset;
+            const asset = {
+                "id": responseObj.asset.id,
+                "custodianId": responseObj.asset.custodianId,
+                "assetGroupId": responseObj.asset.assetGroupId
+            }
 
             asset.lastTransfer = responseObj.asset_transfer;
 
