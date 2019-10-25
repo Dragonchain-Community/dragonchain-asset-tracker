@@ -28,8 +28,7 @@ module.exports = async (input, callback) => {
 
             callback(undefined, 
                 {
-                    "response": {
-                        "requestTransactionId": inputObj.header.txn_id, // Won't be necessary if invoker gets indexed in a future DC release //
+                    "response": {                        
                         "custodian": {
                             "id": inputObj.header.txn_id,
                             "name": inCustodian.name,
@@ -66,6 +65,52 @@ module.exports = async (input, callback) => {
                             "description": inAssetGroup.description
                         }
                     }
+                }
+            );
+
+        } else if (inputObj.payload.method == "create_asset")
+        {
+            const inAsset = inputObj.payload.parameters.asset;
+
+            // Check that custodian is the authority //
+            let custodian = await helper.getCurrentCustodianObject(client, {custodianId: inAsset.custodianId});
+
+            if (custodian.type != "authority")
+                throw "Only the authority custodian may create asset groups.";
+
+            const responseObj = {                
+                "asset": {
+                    "id": inputObj.header.txn_id,
+                    "custodianId": custodian.id,
+                    "assetGroupId": typeof inAsset.assetGroupId !== "undefined" ? inAsset.assetGroupId : null
+                },
+                "asset_transfer": {
+                    "id": inputObj.header.txn_id,
+                    "assetId": inputObj.header.txn_id,
+                    "assetTransferAuthorizationId": null,
+                    "fromCustodianId": null,
+                    "toCustodianId": custodian.id
+                }
+            }
+
+            if (inAsset.asset_external_data)
+            {
+                responseObj.asset_external_data = {
+                    "id": inputObj.header.txn_id,
+                    "assetId": inputObj.header.txn_id,
+                    "externalId": inAsset.asset_external_data.externalId,
+                    "externalData": inAsset.asset_external_data.externalData,
+                }
+            }
+
+            const custodianKey = `custodian-${custodian.id}`;
+
+            custodian.assets.push(responseObj.asset.id);
+
+            callback(undefined, 
+                {
+                    "response": responseObj,
+                    [custodianKey]: custodian
                 }
             );
 
