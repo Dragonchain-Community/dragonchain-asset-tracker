@@ -14,6 +14,7 @@ module.exports = async (input, callback) => {
         if (inputObj.payload.method == "create_custodian")
         {
             const inCustodian = inputObj.payload.parameters.custodian;
+            const inCustodianExternalData = typeof inputObj.payload.parameters.custodian_external_data !== "undefined" ? inputObj.payload.parameters.custodian_external_data : undefined;
 
             if (inCustodian.type == "authority")
             {
@@ -24,21 +25,31 @@ module.exports = async (input, callback) => {
                     throw "An authority record already exists for this contract instance.";                
             } 
 
+            const responseObj = {
+                "custodian": {
+                    "id": inputObj.header.txn_id,                    
+                    "type": inCustodian.type
+                }
+            }
+
+            if (inCustodianExternalData)
+            {
+                responseObj.custodian_external_data = {
+                    "id": inputObj.header.txn_id,
+                    "custodianId": inputObj.header.txn_id,                    
+                    "externalData": inCustodianExternalData.externalData
+                }
+            }
+
             const custodianKey = `custodian-${inputObj.header.txn_id}`;
 
             callback(undefined, 
                 {
-                    "response": {                        
-                        "custodian": {
-                            "id": inputObj.header.txn_id,
-                            "name": inCustodian.name,
-                            "type": inCustodian.type
-                        }
-                    },
+                    "response": responseObj,
                     [custodianKey]: {
-                        "id": inputObj.header.txn_id,
-                        "name": inCustodian.name,
+                        "id": inputObj.header.txn_id,                        
                         "type": inCustodian.type,
+                        "custodianExternalData": typeof responseObj.custodian_external_data !== "undefined" ? responseObj.custodian_external_data : null,
                         "assets": []
                     }
                 }
@@ -72,6 +83,7 @@ module.exports = async (input, callback) => {
         {
             const inAsset = inputObj.payload.parameters.asset;
             const inAssetExternalData = typeof inputObj.payload.parameters.asset_external_data !== "undefined" ? inputObj.payload.parameters.asset_external_data : undefined;
+            const inAssetTransferAuthorization = typeof inputObj.payload.parameters.asset_transfer_authorization !== "undefined" ? inputObj.payload.parameters.asset_transfer_authorization : undefined;
 
             // Check that custodian is the authority //
             let custodian = await helper.getCurrentCustodianObject(client, {custodianId: inAsset.custodianId});
@@ -100,18 +112,42 @@ module.exports = async (input, callback) => {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,
                     "externalId": inAssetExternalData.externalId,
-                    "externalData": inAssetExternalData.externalData,
+                    "externalData": inAssetExternalData.externalData
                 }
             }
 
+            if (inAssetTransferAuthorization)
+            {
+                responseObj.asset_transfer_authorization = {
+                    "id": inputObj.header.txn_id,
+                    "assetId": inputObj.header.txn_id,
+                    "fromCustodianId": custodian.id,
+                    "toCustodianId": inAssetTransferAuthorization.toCustodianId
+                }
+            }
+
+            // Update the custodian object to be written to heap //
             const custodianKey = `custodian-${custodian.id}`;
 
             custodian.assets.push(responseObj.asset.id);
 
+            // Create the asset object to be written to heap //
+            const assetKey = `asset-${inputObj.header.txn_id}`;
+
+            const asset = responseObj.asset;
+
+            asset.lastTransfer = responseObj.asset_transfer;
+
+            asset.currentTransferAuthorization = typeof responseObj.asset_transfer_authorization !== "undefined" ? responseObj.asset_transfer_authorization : null;
+
+            asset.assetExternalData = typeof responseObj.asset_external_data !== "undefined" ? responseObj.asset_external_data : null;
+
+            // All done - run callback with response and latest custodian and asset object versions //
             callback(undefined, 
                 {
                     "response": responseObj,
-                    [custodianKey]: custodian
+                    [custodianKey]: custodian,
+                    [assetKey]: asset
                 }
             );
 
