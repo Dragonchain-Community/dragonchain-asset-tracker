@@ -68,7 +68,6 @@ module.exports = async (input, callback) => {
             callback(undefined, 
                 {
                     "response": {
-                        "requestTransactionId": inputObj.header.txn_id, 
                         "asset_group": {
                             "id": inputObj.header.txn_id,
                             "custodianId": inAssetGroup.custodianId,
