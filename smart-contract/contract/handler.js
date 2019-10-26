@@ -15,15 +15,22 @@ module.exports = async (input, callback) => {
         {
             const inCustodian = inputObj.payload.parameters.custodian;
             const inCustodianExternalData = typeof inputObj.payload.parameters.custodian_external_data !== "undefined" ? inputObj.payload.parameters.custodian_external_data : undefined;
+            const inAuthentication = inputObj.payload.parameters.authentication;
 
-            if (inCustodian.type == "authority")
+            // Authenticated custodian is only optional when creating the single authority custodian for the contract //
+            const authenticatedCustodian = typeof inAuthentication.custodianId !== "undefined" ? await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId}) : null;
+
+            if (inCustodian.type == "authority" && authenticatedCustodian == null)
             {
                 // Be sure there isn't already an authority record //
                 const custodians = await helper.getCustodiansByType(client, {type:"authority"})
 
                 if (custodians.length > 0)                
                     throw "An authority record already exists for this contract instance.";                
-            } 
+            } else {
+                if (authenticatedCustodian.type != "authority")
+                    throw "Only the authority custodian may create additional custodians.";
+            }
 
             let responseObj = {
                 "custodian": {
@@ -58,11 +65,12 @@ module.exports = async (input, callback) => {
         } else if (inputObj.payload.method == "create_asset_group")
         {
             const inAssetGroup = inputObj.payload.parameters.asset_group;
+            
+            const inAuthentication = inputObj.payload.parameters.authentication;
 
-            // Check that custodian is the authority //
-            const custodian = await helper.getCurrentCustodianObject(client, {custodianId: inAssetGroup.custodianId});
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
-            if (custodian.type != "authority")
+            if (authenticatedCustodian.type != "authority")
                 throw "Only the authority custodian may create asset groups.";
 
             callback(undefined, 
@@ -70,7 +78,7 @@ module.exports = async (input, callback) => {
                     "response": {
                         "asset_group": {
                             "id": inputObj.header.txn_id,
-                            "custodianId": inAssetGroup.custodianId,
+                            "custodianId": authenticatedCustodian.id,
                             "name": inAssetGroup.name,
                             "description": inAssetGroup.description
                         }
@@ -80,16 +88,21 @@ module.exports = async (input, callback) => {
 
         } else if (inputObj.payload.method == "create_asset")
         {
-            // TODO: Add authority authentication //
-
             const inAsset = inputObj.payload.parameters.asset;
             const inAssetExternalData = typeof inputObj.payload.parameters.asset_external_data !== "undefined" ? inputObj.payload.parameters.asset_external_data : undefined;
             const inAssetTransferAuthorization = typeof inputObj.payload.parameters.asset_transfer_authorization !== "undefined" ? inputObj.payload.parameters.asset_transfer_authorization : undefined;
 
+            const inAuthentication = inputObj.payload.parameters.authentication;
+
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
+            
+            if (authenticatedCustodian.type != "authority")
+                throw "Only the authority custodian may create assets.";
+
             let responseObj = {                
                 "asset": {
                     "id": inputObj.header.txn_id,
-                    "custodianId": custodian.id,
+                    "custodianId": authenticatedCustodian.id,
                     "assetGroupId": typeof inAsset.assetGroupId !== "undefined" ? inAsset.assetGroupId : null
                 },
                 "asset_transfer": {
@@ -97,7 +110,7 @@ module.exports = async (input, callback) => {
                     "assetId": inputObj.header.txn_id,
                     "assetTransferAuthorizationId": null,
                     "fromCustodianId": null,
-                    "toCustodianId": custodian.id
+                    "toCustodianId": authenticatedCustodian.id
                 }
             }
 
@@ -116,13 +129,13 @@ module.exports = async (input, callback) => {
                 responseObj.asset_transfer_authorization = {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,
-                    "fromCustodianId": custodian.id,
+                    "fromCustodianId": authenticatedCustodian.id,
                     "toCustodianId": inAssetTransferAuthorization.toCustodianId
                 }
             }
 
             // Update the custodian object to be written to heap //
-            const custodianKey = `custodian-${custodian.id}`;
+            const custodianKey = `custodian-${authenticatedCustodian.id}`;
 
             custodian.assets.push(responseObj.asset.id);
 
@@ -152,11 +165,17 @@ module.exports = async (input, callback) => {
 
         } else if (inputObj.payload.method == "set_asset_external_data")
         {
-            // TODO: Add authority authentication //
-
             const inAssetExternalData = inputObj.payload.parameters.asset_external_data;
 
             let asset = await helper.getCurrentAssetObject(client, {assetId: inAssetExternalData.assetId});
+
+            const inAuthentication = inputObj.payload.parameters.authentication;
+
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
+
+            // Only the owner of the asset may adjust its external data //
+            if (authenticatedCustodian.id != asset.custodianId)
+                throw "Only an asset's creator may set its external data.";
 
             let responseObj = {
                 "asset_external_data": {
@@ -180,16 +199,22 @@ module.exports = async (input, callback) => {
 
         } else if (inputObj.payload.method == "set_custodian_external_data")
         {
-            // TODO: Add custodian authentication //
+            const inCustodianExternalData = inputObj.payload.parameters.custodian_external_data;
 
-            const inCustodianExternalData = inputObj.payload.parameters.asset_external_data;
+            let custodian = await helper.getCurrentCustodianObject(client, {custodianId: inCustodianExternalData.custodianId});
 
-            let custodian = await helper.getCurrentCustodianObject(client, {custodianId: inputObj.payload.parameters.custodianId});
+            const inAuthentication = inputObj.payload.parameters.authentication;
+
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
+
+            // Only the owner of the custodian may adjust its external data //
+            if (authenticatedCustodian.id != custodian.Id)
+                throw "Only the custodian may set its external data.";
 
             let responseObj = {
                 "custodian_external_data": {
                     "id": inputObj.header.txn_id,
-                    "custodianId": asset.id,
+                    "custodianId": custodian.id,
                     "externalData": inCustodianExternalData.externalData
                 }
             };
@@ -205,20 +230,25 @@ module.exports = async (input, callback) => {
                 }
             );            
         } else if (inputObj.payload.method == "authorize_asset_transfer")
-        {
-            // TODO: Add custodian authentication //
-
+        {            
             const inAssetTransferAuthorization = inputObj.payload.parameters.asset_transfer_authorization;
 
+            const inAuthentication = inputObj.payload.parameters.authentication;
+
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
+            
             let asset = await helper.getCurrentAssetObject(client, {assetId: inAssetTransferAuthorization.assetId});
-            let fromCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAssetTransferAuthorization.fromCustodianId});
+
+            // The from custodian can only be the current holder of the asset //
+            let fromCustodian = await helper.getCurrentCustodianObject(client, {custodianId: asset.lastTransfer.toCustodianId});
+
             let toCustodian = typeof inAssetTransferAuthorization.toCustodianId !== "undefined" ? await helper.getCurrentCustodianObject(client, {custodianId: inAssetTransferAuthorization.toCustodianId}) : undefined;
+            
+            if (authenticatedCustodian.id != fromCustodian.id)
+                throw "Only the current custodian of an asset may authorize its transfer.";
 
             if (asset.currentTransferAuthorization != null)
                 throw "Only one asset transfer authorization may be active at a time.";
-
-            if (fromCustodian.id != asset.lastTransfer.toCustodianId)
-                throw "Only the current asset custodian may authorize asset transfer.";
 
             let responseObj = {
                 "asset_transfer_authorization": {
@@ -240,13 +270,15 @@ module.exports = async (input, callback) => {
                 }
             );            
         } else if (inputObj.payload.method == "accept_asset_transfer")
-        {
-            // TODO: Add custodian authentication //
-
+        {            
             const inAssetTransfer = inputObj.payload.parameters.asset_transfer;
 
+            const inAuthentication = inputObj.payload.parameters.authentication;
+
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
+
             let asset = await helper.getCurrentAssetObject(client, {assetId: inAssetTransfer.assetId});            
-            let toCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAssetTransfer.toCustodianId});
+            let toCustodian = await helper.getCurrentCustodianObject(client, {custodianId: authenticatedCustodian.id});
 
             if (asset.currentTransferAuthorization == null)
                 throw "That asset is not authorized for transfer. Please contact the asset authority.";
