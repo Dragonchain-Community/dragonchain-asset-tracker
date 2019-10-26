@@ -15,7 +15,7 @@ module.exports = async (input, callback) => {
         {
             const inCustodian = inputObj.payload.parameters.custodian;
             const inCustodianExternalData = typeof inputObj.payload.parameters.custodian_external_data !== "undefined" ? inputObj.payload.parameters.custodian_external_data : undefined;
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             // Authenticated custodian is only optional when creating the single authority custodian for the contract //
             const authenticatedCustodian = typeof inAuthentication.custodianId !== "undefined" ? await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId}) : null;
@@ -66,7 +66,7 @@ module.exports = async (input, callback) => {
         {
             const inAssetGroup = inputObj.payload.parameters.asset_group;
             
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
@@ -92,7 +92,7 @@ module.exports = async (input, callback) => {
             const inAssetExternalData = typeof inputObj.payload.parameters.asset_external_data !== "undefined" ? inputObj.payload.parameters.asset_external_data : undefined;
             const inAssetTransferAuthorization = typeof inputObj.payload.parameters.asset_transfer_authorization !== "undefined" ? inputObj.payload.parameters.asset_transfer_authorization : undefined;
 
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
             
@@ -169,7 +169,7 @@ module.exports = async (input, callback) => {
 
             let asset = await helper.getCurrentAssetObject(client, {assetId: inAssetExternalData.assetId});
 
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
@@ -203,7 +203,7 @@ module.exports = async (input, callback) => {
 
             let custodian = await helper.getCurrentCustodianObject(client, {custodianId: inCustodianExternalData.custodianId});
 
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
@@ -233,7 +233,7 @@ module.exports = async (input, callback) => {
         {            
             const inAssetTransferAuthorization = inputObj.payload.parameters.asset_transfer_authorization;
 
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
             
@@ -273,7 +273,7 @@ module.exports = async (input, callback) => {
         {            
             const inAssetTransfer = inputObj.payload.parameters.asset_transfer;
 
-            const inAuthentication = inputObj.payload.parameters.authentication;
+            const inAuthentication = inputObj.payload.authentication;
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
