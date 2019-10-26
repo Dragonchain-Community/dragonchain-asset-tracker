@@ -4,7 +4,7 @@
 
 Create Custodian:
 
-```{"method":"create_custodian", "parameters":{"custodian":{"type":"authority"}, "custodian_external_data": {"externalData":{"name":"Nike","description":"The Nike shoe brand"}}}, "authentication":{"custodianId":"12345"}}```
+```{"method":"create_custodian", "parameters":{"custodian":{"type":"authority"}, "custodian_external_data": {"externalData":{"name":"Nike","description":"The Nike shoe brand"}}}}```
 
 ```{"method":"create_custodian", "parameters":{"custodian":{"type":"handler"}, "custodian_external_data": {"externalData":{"name":"Foot Locker #12345","description":"Foot Locker store in Bellevue, WA"}}}, "authentication":{"custodianId":"12345"}}```
 
