@@ -3,6 +3,9 @@
 // This should be whatever name you intend to use when deploying your smart contract //
 const contractTxnType = "asset_tracker";
 
+// This id should be set after deploying the contract in case certain helper methods are needed outside of the contract //
+const contractId = "";
+
 module.exports = {    
     getCustodiansByType: async (client, options) => {    
 
@@ -33,6 +36,25 @@ module.exports = {
             const custodianObjectResponse = await client.getSmartContractObject({key:`custodian-${options.custodianId}`, smartContractId: contractId})
 
             const responseObj = JSON.parse(custodianObjectResponse.response);
+            
+            if (responseObj.error)
+                throw responseObj.error.details;
+
+            return responseObj;
+        } catch (exception)
+        {            
+            throw exception
+        }
+    },
+
+    getCurrentAssetObject: async (client, options) => {
+        // If user passed a contract ID, use that, otherwise pull from the smart contract's environment variables (must be running inside a contract for that to work) //
+        const contractId = typeof options.contractId !== "undefined" ? options.contractId : process.env.SMART_CONTRACT_ID;
+
+        try {
+            const assetObjectResponse = await client.getSmartContractObject({key:`asset-${options.assetId}`, smartContractId: contractId})
+
+            const responseObj = JSON.parse(assetObjectResponse.response);
             
             if (responseObj.error)
                 throw responseObj.error.details;
