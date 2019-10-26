@@ -56,7 +56,7 @@ module.exports = async (input, callback) => {
                     [custodianKey]: {
                         "id": inputObj.header.txn_id,                        
                         "type": inCustodian.type,
-                        "externalData": typeof responseObj.custodian_external_data !== "undefined" ? responseObj.custodian_external_data : null,
+                        "currentExternalData": typeof responseObj.custodian_external_data !== "undefined" ? responseObj.custodian_external_data : null,
                         "assets": []
                     }
                 }
@@ -152,7 +152,7 @@ module.exports = async (input, callback) => {
 
             asset.currentTransferAuthorization = typeof responseObj.asset_transfer_authorization !== "undefined" ? responseObj.asset_transfer_authorization : null;
 
-            asset.externalData = typeof responseObj.asset_external_data !== "undefined" ? responseObj.asset_external_data : null;
+            asset.currentExternalData = typeof responseObj.asset_external_data !== "undefined" ? responseObj.asset_external_data : null;
 
             // All done - run callback with response and latest custodian and asset object versions //
             callback(undefined, 
@@ -186,7 +186,7 @@ module.exports = async (input, callback) => {
                 }
             };
 
-            asset.externalData = responseObj.asset_external_data;
+            asset.currentExternalData = responseObj.asset_external_data;
 
             const assetKey = `asset-${asset.id}`;
 
@@ -219,7 +219,7 @@ module.exports = async (input, callback) => {
                 }
             };
 
-            custodian.externalData = responseObj.custodian_external_data;
+            custodian.currentExternalData = responseObj.custodian_external_data;
 
             const custodianKey = `custodian-${custodian.id}`;
 
