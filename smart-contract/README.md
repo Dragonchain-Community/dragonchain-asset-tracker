@@ -4,37 +4,37 @@
 
 Create Custodian:
 
-```{"method":"create_custodian", "parameters":{"custodian":{"type":"authority"}, "custodian_external_data": {"externalData":{"name":"Nike","description":"The Nike shoe brand"}}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"create_custodian", "parameters":{"custodian":{"type":"authority"}, "custodian_external_data": {"externalData":{"name":"Nike","description":"The Nike shoe brand"}}}, "authentication":{"custodianId":"12345"}}```
 
-```{"method":"create_custodian", "parameters":{"custodian":{"type":"handler"}, "custodian_external_data": {"externalData":{"name":"Foot Locker #12345","description":"Foot Locker store in Bellevue, WA"}}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"create_custodian", "parameters":{"custodian":{"type":"handler"}, "custodian_external_data": {"externalData":{"name":"Foot Locker #12345","description":"Foot Locker store in Bellevue, WA"}}}, "authentication":{"custodianId":"12345"}}```
 
-```{"method":"create_custodian", "parameters":{"custodian":{"type":"owner"}, "custodian_external_data": {"externalData":{"name":"John Doe","email":"john@example.com"}}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"create_custodian", "parameters":{"custodian":{"type":"owner"}, "custodian_external_data": {"externalData":{"name":"John Doe","email":"john@example.com"}}}, "authentication":{"custodianId":"12345"}}```
 
 Set Custodian External Data:
 
-```{"method":"set_custodian_external_data", "parameters":{"custodian_external_data": {"custodianId": "12345", "externalData":{"name":"Nike","description":"The Nike shoe brand"}}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"set_custodian_external_data", "parameters":{"custodian_external_data": {"custodianId": "12345", "externalData":{"name":"Nike","description":"The Nike shoe brand"}}}, "authentication":{"custodianId":"12345"}}```
 
 Create Asset Group:
 
-```{"method":"create_asset_group", "parameters":{"asset_group":{"name": "Nike HMDs", "description":"2019 line of Nike Hand-Me-Downs"}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"create_asset_group", "parameters":{"asset_group":{"name": "Nike HMDs", "description":"2019 line of Nike Hand-Me-Downs"}}, "authentication":{"custodianId":"12345"}}```
 
 Create Asset:
 
-```{"method":"create_asset", "parameters":{"asset":{"assetGroupId":"12345"},"asset_external_data":{"externalId":"serial-12345", "externalData": {"name":"Nike HMD Runners","color":"Blue/Green","image_url":"https://google.com", "description":"The 2019 edition of the Nike Hand-Me-Down runners in bright ass blue and Hulk-pee green."}}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"create_asset", "parameters":{"asset":{"assetGroupId":"12345"},"asset_external_data":{"externalId":"serial-12345", "externalData": {"name":"Nike HMD Runners","color":"Blue/Green","image_url":"https://google.com", "description":"The 2019 edition of the Nike Hand-Me-Down runners in bright ass blue and Hulk-pee green."}}}, "authentication":{"custodianId":"12345"}}```
 
 Set Asset External Data:
 
-```{"method":"set_asset_external_data", "parameters":{"asset_external_data":{"assetId": "12345", "externalId":"serial-12345", "externalData": {"name":"Nike HMD Runners","color":"Blue/Green","image_url":"https://google.com", "description":"The 2019 edition of the Nike Hand-Me-Down runners in bright ass blue and Hulk-pee green."}}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"set_asset_external_data", "parameters":{"asset_external_data":{"assetId": "12345", "externalId":"serial-12345", "externalData": {"name":"Nike HMD Runners","color":"Blue/Green","image_url":"https://google.com", "description":"The 2019 edition of the Nike Hand-Me-Down runners in bright ass blue and Hulk-pee green."}}}, "authentication":{"custodianId":"12345"}}```
 
 Authorize Asset Transfer:
 
 ```{"method":"authorize_asset_transfer", "parameters":{"asset_transfer_authorization":{"assetId": "12345"}}, {"authentication":{"custodianId":"12345"}}}```
 
-```{"method":"authorize_asset_transfer", "parameters":{"asset_transfer_authorization":{"assetId": "12345", "toCustodianId": "67890"}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"authorize_asset_transfer", "parameters":{"asset_transfer_authorization":{"assetId": "12345", "toCustodianId": "67890"}}, "authentication":{"custodianId":"12345"}}```
 
 Accept Asset Transfer:
 
-```{"method":"accept_asset_transfer", "parameters":{"asset_transfer":{"assetId": "12345"}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"accept_asset_transfer", "parameters":{"asset_transfer":{"assetId": "12345"}}, "authentication":{"custodianId":"12345"}}```
 
 
 
