@@ -137,7 +137,7 @@ module.exports = async (input, callback) => {
             // Update the custodian object to be written to heap //
             const custodianKey = `custodian-${authenticatedCustodian.id}`;
 
-            custodian.assets.push(responseObj.asset.id);
+            authenticatedCustodian.assets.push(responseObj.asset.id);
 
             // Create the asset object to be written to heap //
             const assetKey = `asset-${inputObj.header.txn_id}`;
@@ -158,7 +158,7 @@ module.exports = async (input, callback) => {
             callback(undefined, 
                 {
                     "response": responseObj,
-                    [custodianKey]: custodian,
+                    [custodianKey]: authenticatedCustodian,
                     [assetKey]: asset
                 }
             );
