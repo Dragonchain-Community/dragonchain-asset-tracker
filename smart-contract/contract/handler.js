@@ -18,7 +18,7 @@ module.exports = async (input, callback) => {
             const inAuthentication = inputObj.payload.authentication;
 
             // Authenticated custodian is only optional when creating the single authority custodian for the contract //
-            const authenticatedCustodian = typeof inAuthentication.custodianId !== "undefined" ? await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId}) : null;
+            const authenticatedCustodian = typeof inputObj.payload.authentication !== "undefined" ? await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId}) : null;
 
             if (inCustodian.type == "authority" && authenticatedCustodian == null)
             {
