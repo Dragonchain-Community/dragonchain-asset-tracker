@@ -28,7 +28,7 @@ Set Asset External Data:
 
 Authorize Asset Transfer:
 
-```{"method":"authorize_asset_transfer", "parameters":{"asset_transfer_authorization":{"assetId": "12345"}}, {"authentication":{"custodianId":"12345"}}}```
+```{"method":"authorize_asset_transfer", "parameters":{"asset_transfer_authorization":{"assetId": "12345"}}, "authentication":{"custodianId":"12345"}}```
 
 ```{"method":"authorize_asset_transfer", "parameters":{"asset_transfer_authorization":{"assetId": "12345", "toCustodianId": "67890"}}, "authentication":{"custodianId":"12345"}}```
 

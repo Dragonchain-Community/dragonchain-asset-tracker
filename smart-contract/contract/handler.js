@@ -281,7 +281,7 @@ module.exports = async (input, callback) => {
             let toCustodian = await helper.getCurrentCustodianObject(client, {custodianId: authenticatedCustodian.id});
 
             if (asset.currentTransferAuthorization == null)
-                throw "That asset is not authorized for transfer. Please contact the asset authority.";
+                throw "That asset is not authorized for transfer. Please contact the asset's current custodian.";
 
             if (asset.currentTransferAuthorization.toCustodianId != null && asset.currentTransferAuthorization.toCustodianId != toCustodian.id)
                 throw "The specified custodian is not authorized to accept transfer of that asset.";
@@ -323,7 +323,9 @@ module.exports = async (input, callback) => {
             );            
 
         } else {
-            callback("Invalid method or no method specified", {"OUTPUT_TO_CHAIN":false});
+            callback("Invalid method or no method specified", {                 
+                "exception": "Invalid method or no method specified"                
+            });
         }
     } catch (exception)
     {
