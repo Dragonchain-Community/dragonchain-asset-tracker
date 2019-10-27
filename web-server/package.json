@@ -1,0 +1,22 @@
+{
+  "name": "dragonchain-asset-tracker-webserver",
+  "version": "0.0.1",
+  "main": "server.js",
+  "dependencies": {
+    "dragonchain-sdk": "^4.0.0",
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.2"
+  },
+  "scripts": {
+    "start": "npx nodemon server.js"
+  },
+  "author": "John DeLancey",
+  "license": "MIT"
+}

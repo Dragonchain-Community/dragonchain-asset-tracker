@@ -1,0 +1,252 @@
+<div id="loading">
+	<span class="spinner-border spinner-border-sm text-primary"></span>
+	<span id="loading-details">Loading...</span>
+</div>
+<div id="node-info" class="d-none">
+	<div class="row">
+		<div class="col-sm-8">
+			<h4>Public ID: <span id="public-id"></span></h4>
+		</div>
+		<div class="col-sm-4 text-right">
+	 		<div id="app-state"></div>
+		</div>
+	</div>
+
+	<div class="bg-light p-3 border">
+		<div class="row mb-2">
+			<div class="col-sm-4">			
+				<b>Node Level:</b><br/>
+				<span id="dc-node-level"></span>
+			</div>	
+
+			<div class="col-sm-4">			
+				<b>Dragonchain Version:</b><br/>
+				<span id="dc-version"></span>			
+			</div>
+
+			<div class="col-sm-4">
+				<b>Block Height:</b><br/>
+				<div id="block-height"></div>
+			</div>
+		</div>
+
+		<div class="row mb-2">
+			<div class="col-sm-4">
+				<b>Blocks Last 24 Hours:</b><br/>
+				<span id="block-count-day"></span>
+			</div>
+
+			<div class="col-sm-4">
+				<b>Last Block Time:</b><br/>
+				<span id="last-block-date"></span>				
+			</div>
+
+			<div class="col-sm-4">
+				<b>TIME @ Last Block:</b><br/>
+				<span id="dc-time-at-last-block"><span>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-sm-12 text-center pt-3">
+			<ul class="nav nav-pills nav-justified">
+				<li class="nav-item">
+					<a id="chart-bymonth" class="chart-option nav-link" href="#">By Month</a>
+				</li>
+				<li class="nav-item">
+					<a id="chart-byweek" class="chart-option nav-link" href="#">By Week</a>
+				</li>
+				<li class="nav-item">
+					<a id="chart-byday" class="chart-option nav-link" href="#">By Day</a>
+				</li>
+				<li class="nav-item">
+					<a id="chart-byhour" class="chart-option nav-link" href="#">By Hour</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div id="chart"></div>
+		</div>		
+	</div>
+
+	<p><b>Block Browser:</b></p>
+	<div class="row">		
+		<div class="col-sm-2">
+			<div id="block-list" class="list-group overflow-auto" style="max-height: 498px;"></div>
+		</div>
+		<div class="col-sm-10">
+			<pre class="bg-light border p-2"><code id="current-block"></code></pre>
+		</div>
+	</div>
+</div>
+
+<div id="modal-transaction" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">		          
+      </div>
+      <div class="modal-footer">        
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+	var ping = null;
+
+	$(function () {		
+
+		// Initialize 
+		if (!config.current_chart)
+		{
+			config.current_chart = "#chart-byday";
+			$(config.current_chart).addClass("active");
+		}
+
+		$(".chart-option")			
+			.click(function () {
+				$(".chart-option").removeClass("active");
+				$(this).addClass("active");
+				config.current_chart = "#" + $(this).attr("id");
+				tools.updateChart();
+			})
+
+		google.charts.load('current', {packages: ['corechart', 'bar']});
+
+		if (window.localStorage.credentials_secure)
+		{
+			tools.setTakaraPrice();
+			
+			tools.getStatus()
+				.then(function (data) {
+
+					var dataObj = JSON.parse(data);
+
+					if (dataObj.error)
+					{
+						tools.redirectToLogin();
+					} else {												
+						node.public_id = dataObj.status.id;
+						node.node_level = dataObj.status.level;
+						node.dragonchain_version = dataObj.status.version;
+
+						db.findLastBlock()
+							.then(function (result) {
+								var start_timestamp = 0;
+
+								if (result)
+								{
+									node.last_block = result.block;
+									node.last_block_timestamp = Number(result.block.header.timestamp);
+									node.last_block_id = Number(result.block.header.block_id);
+								} else {
+									node.last_block_id = node.last_block_timestamp = 0;
+								}
+
+								var ping = function () {										
+									try {
+
+										// Get new blocks //
+										tools.getBlocks(node.last_block_timestamp, config.blocks_per_pull)
+											.then(function (new_blocks) {
+												if (new_blocks && new_blocks.length > 0)											
+												{
+													// Update the database //													
+													db.addBlocks(new_blocks)
+														.then(function () {																		
+															// Update last block and chart data //
+															tools.updateLastBlock(new_blocks[new_blocks.length-1]);
+															tools.updateBlocksLastDay();
+															tools.updateChart();
+
+															tools.setAppState("Last check: " + moment().format("LTS"));
+
+															tools.refreshUI();
+
+															setTimeout(ping, config.ping_delay);
+														});
+													
+												} else {													
+													if (!node.initialized)
+													{
+														node.last_update = moment.utc();								
+														node.initialized = true;
+
+														tools.updateLastBlock();
+														tools.updateBlocksLastDay();
+														tools.updateChart();														
+													}
+
+													if (node.last_block)
+														node.last_block_date = moment(node.last_block.header.timestamp * 1000).format('lll') + "  (" + moment(node.last_block.header.timestamp * 1000).fromNow() + ")";
+
+													tools.setAppState("Last check: " + moment().format("LTS"));
+
+													tools.refreshUI();
+
+													setTimeout(ping, config.ping_delay);
+												}
+											
+											})									
+									} catch (e)
+									{
+										console.log(e)
+										setTimeout(ping, config.ping_delay);
+									}
+									
+								}								
+
+								ping();								
+								
+							}).catch(function (err) {
+								console.log(err)						
+							})
+					}
+				})
+
+			$(document).on("click", ".btn-select-block", function () {
+				tools.updateBlockDisplayed($(this).attr("rel"))
+
+				$(".btn-select-block").removeClass("active")
+				$(this).addClass("active");
+			})
+
+			$(document).on("click", ".view-transaction", function () {
+				
+				tools.getTransaction($(this).attr("rel"))
+					.then(function (dataRaw) {			
+						data = JSON.parse(dataRaw);
+						$("#modal-transaction .modal-title").html("Transaction ID: " + data.header.txn_id)
+						$("#modal-transaction .modal-body").html("<pre class='bg-dark text-light border p-2'><code>" + JSON.stringify(data, null, 2) + "</code></pre>")
+						
+						$("#modal-transaction").modal();							
+					});
+
+				return false;
+			})
+
+			$("#logout")
+				.removeClass("d-none")
+				.click(function () {
+					window.localStorage.removeItem("credentials_secure")							
+					document.location.href = "/login";
+				})
+
+		} else {
+			document.location.href = "/login";
+		}
+
+	});	
+	
+</script>

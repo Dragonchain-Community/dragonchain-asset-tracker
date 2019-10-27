@@ -1,10 +1,10 @@
 'use strict'
 
-// This should be whatever name you intend to use when deploying your smart contract //
+// This should be the name used when deploying the smart contract //
 const contractTxnType = "asset_tracker";
 
 // This id should be set after deploying the contract in case certain helper methods are needed outside of the contract //
-const contractId = "";
+const contractId = "638260d8-75d4-41e6-ab12-6aca2d9f8322";
 
 module.exports = {    
     getCustodiansByType: async (client, options) => {    
