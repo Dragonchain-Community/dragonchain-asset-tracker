@@ -1,16 +1,50 @@
 'use strict'
 
-// This should be the name used when deploying the smart contract //
-const contractTxnType = "asset_tracker";
+const util = require('util');
 
-// This id should be set after deploying the contract in case certain helper methods are needed outside of the contract //
-const contractId = "638260d8-75d4-41e6-ab12-6aca2d9f8322";
+const config = require('./config');
 
-const helper = {        
+// Fancy utility function //
+const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// General helper for interacting with our Dragonchain node using the SDK client //
+const helper = {          
+    waitForResponseTxn: async (client, requestTxnId) => {
+        try {        
+            let responseTxn = null;
+            let waitCount = 0;
+
+            while (responseTxn == null && waitCount < 10)
+            {
+                const results = await client.queryTransactions({
+                    transactionType: config.contractTxnType,
+                    redisearchQuery: `@invoker:${requestTxnId}`
+                });
+
+                if (results.response.total > 0)
+                    responseTxn = results.response.results[0];
+
+                waitCount++
+
+                await helper.sleep(500);
+            }
+
+            if (responseTxn != null)
+                return responseTxn;
+            else
+                throw "Response transaction not found.";
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully
+            throw exception;
+        }
+    },    
     getCustodians: async (client) => {    
         try {
             const custodianTransactions = await client.queryTransactions({
-                transactionType: contractTxnType,
+                transactionType: config.contractTxnType,
                 redisearchQuery: `@custodian_type:(authority|handler|owner)`,
                 limit: 999999
             });
@@ -30,7 +64,7 @@ const helper = {
     getCustodiansByType: async (client, options) => {    
         try {
             const custodianTransactions = await client.queryTransactions({
-                transactionType: contractTxnType,
+                transactionType: config.contractTxnType,
                 redisearchQuery: `@custodian_type:${options.type}`,
                 limit: 999999
             });
@@ -48,8 +82,8 @@ const helper = {
     },
 
     getCurrentCustodianObject: async (client, options) => {        
-        try {
-            const custodianObjectResponse = await client.getSmartContractObject({key:`custodian-${options.custodianId}`, smartContractId: contractId})
+        try {            
+            const custodianObjectResponse = await client.getSmartContractObject({key:`custodian-${options.custodianId}`, smartContractId: config.contractId})
 
             const responseObj = JSON.parse(custodianObjectResponse.response);
             
@@ -65,7 +99,7 @@ const helper = {
 
     getCurrentAssetObject: async (client, options) => {        
         try {
-            const assetObjectResponse = await client.getSmartContractObject({key:`asset-${options.assetId}`, smartContractId: contractId})
+            const assetObjectResponse = await client.getSmartContractObject({key:`asset-${options.assetId}`, smartContractId: config.contractId})
 
             const responseObj = JSON.parse(assetObjectResponse.response);
             

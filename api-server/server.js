@@ -37,18 +37,68 @@ const main = async() => {
 
 		const custodians = await helper.getCustodians(client);
 
+		// This is a potentially dangerously long-running .map if there are many custodians (but a useful demonstration) //
+		//const custodianObjects = await Promise.all(custodians.map(async c => {return await helper.getCurrentCustodianObject(client, {custodianId: c.id})}));
+
 		res.json(custodians);
+	}));	
+
+	// Get custodians by type //
+	app.get('/custodians/type/:type', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const custodians = await helper.getCustodiansByType(client, {type: req.params.type});
+
+		res.json(custodians);
+	}));
+
+	// Get a specific custodian //
+	app.get('/custodians/:custodianId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const custodian = await helper.getCurrentCustodianObject(client, {custodianId: req.params.custodianId});
+
+		res.json(custodian);
 	}));	
 
 	// Create a new custodian //
 	app.post('/custodians', awaitHandlerFactory(async (req, res) => {
-		
-	}));	
+		const client = await dcsdk.createClient();
 
-	// Get a specific custodian //
-	app.get('/custodians/:custodianId', awaitHandlerFactory(async (req, res) => {
-		
-	}));	
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		let payload = {
+			"method":"create_custodian", 
+			"parameters":{
+				"custodian":{
+					"type":req.body.custodian.type
+				}				
+			}, 
+			"authentication":{
+				"custodianId":authenticatedCustodian.id
+			}
+		};
+
+		if (req.body.custodian.external_data)
+		{
+			payload.parameters.custodian.external_data = req.body.custodian.external_data
+		}
+
+		res.json(payload);
+	}));
 
 
 	// Get all assets //
@@ -56,13 +106,13 @@ const main = async() => {
 		
 	}));	
 
-	// Create a new asset //
-	app.post('/assets', awaitHandlerFactory(async (req, res) => {
+	// Get a specific asset //
+	app.get('/assets/:assetId', awaitHandlerFactory(async (req, res) => {
 		
 	}));	
 
-	// Get a specific asset //
-	app.get('/assets/:assetId', awaitHandlerFactory(async (req, res) => {
+	// Create a new asset //
+	app.post('/assets', awaitHandlerFactory(async (req, res) => {
 		
 	}));	
 	
