@@ -117,7 +117,7 @@ module.exports = async (input, callback) => {
                     [custodianKey]: {
                         "id": inputObj.header.txn_id,                        
                         "type": inCustodian.type,
-                        "current_external_data": typeof responseObj.custodian_external_data.external_data !== "undefined" ? responseObj.custodian_external_data.external_data : null,
+                        "current_external_data": typeof responseObj.custodian_external_data !== "undefined" ? responseObj.custodian_external_data.external_data : null,
                         "assets": []
                     }
                 }
