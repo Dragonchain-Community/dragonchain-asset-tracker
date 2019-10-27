@@ -71,6 +71,22 @@ const main = async() => {
 		res.json(custodian);
 	}));	
 
+	// Get a specific custodian by external ID //
+	app.get('/custodians/external/:externalId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const searchResult = await helper.getCustodianByExternalId(client, {externalId: req.params.externalId});
+
+		const custodian = await helper.getCurrentCustodianObject(client, {custodianId: searchResult.id});
+
+		res.json(custodian);
+	}));
+
 	// Create a new custodian //
 	app.post('/custodians', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
@@ -109,7 +125,12 @@ const main = async() => {
 	// Get a specific asset //
 	app.get('/assets/:assetId', awaitHandlerFactory(async (req, res) => {
 		
-	}));	
+	}));
+
+	// Get a specific asset by external ID //
+	app.get('/assets/external/:externalId', awaitHandlerFactory(async (req, res) => {
+		
+	}));
 
 	// Create a new asset //
 	app.post('/assets', awaitHandlerFactory(async (req, res) => {

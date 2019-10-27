@@ -81,6 +81,28 @@ const helper = {
         }
     },
 
+    getCustodianByExternalId: async (client, options) => {    
+        try {
+            // TODO: Escape string for redisearchQuery //
+            const value = options.externalId;
+
+            const custodianTransactions = await client.queryTransactions({
+                transactionType: config.contractTxnType,
+                redisearchQuery: `@custodian_external_data_external_id:${value}`
+            });
+
+            if (custodianTransactions.response.total > 0)
+            {
+                return custodianTransactions.response.results[0].payload.response.custodian;
+            } else 
+                throw `Custodian not found with external ID ${options.externalId}`;
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully (smart contract vs API, etc.)
+            throw exception;
+        }
+    },
+
     getCurrentCustodianObject: async (client, options) => {        
         try {            
             const custodianObjectResponse = await client.getSmartContractObject({key:`custodian-${options.custodianId}`, smartContractId: config.contractId})
