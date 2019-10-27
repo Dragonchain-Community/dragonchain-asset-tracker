@@ -2,7 +2,10 @@
 
 const dcsdk = require("dragonchain-sdk");
 
-const config = require('./config');
+const config = {
+    // This should be the name used when deploying the smart contract //
+    contractTxnType: "asset_tracker"
+}
 
 const helper = {        
     getCustodiansByType: async (client, options) => {    
