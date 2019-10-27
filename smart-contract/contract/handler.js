@@ -2,11 +2,13 @@
 
 const dcsdk = require("dragonchain-sdk");
 
+const config = require('./config');
+
 const helper = {        
     getCustodiansByType: async (client, options) => {    
         try {
             const custodianTransactions = await client.queryTransactions({
-                transactionType: contractTxnType,
+                transactionType: config.contractTxnType,
                 redisearchQuery: `@custodian_type:${options.type}`,
                 limit: 999999
             });

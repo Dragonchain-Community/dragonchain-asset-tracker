@@ -72,7 +72,7 @@ const main = async() => {
 	}));	
 
 	// Get a specific custodian by external ID //
-	app.get('/custodians/external/:externalId', awaitHandlerFactory(async (req, res) => {
+	app.get('/custodians/externalId/:externalId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
 		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
@@ -128,7 +128,7 @@ const main = async() => {
 	}));
 
 	// Get a specific asset by external ID //
-	app.get('/assets/external/:externalId', awaitHandlerFactory(async (req, res) => {
+	app.get('/assets/externalId/:externalId', awaitHandlerFactory(async (req, res) => {
 		
 	}));
 
