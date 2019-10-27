@@ -1,43 +1,77 @@
 const util = require('util');
-const dcsdk = require('dragonchain-sdk')
+const dcsdk = require('dragonchain-sdk');
 const express = require('express');
-const exphbs = require('express-handlebars');
+const cors = require('cors');
+const helmet = require('helmet');
 
-const helper = require('asset-tracker-helper');
+const helper = require('./asset-tracker-helper');
 
 const app = express();
 
 const main = async() => {
-	
-	var hbs = exphbs.create({
-		helpers: {
-			json: function (context) {return JSON.stringify(context);},
-			jsonPretty: function (context) {return JSON.stringify(context, null, 2);}			
+	const awaitHandlerFactory = (middleware) => {
+		return async (req, res, next) => {
+			try {
+				await middleware(req, res, next)
+			} catch (err) {
+				next(err)
+			}
 		}
-	})
+	}
 
-	app.engine('handlebars', hbs.engine);
-	app.set('view engine', 'handlebars');
+	app.use(helmet());
 
+	app.use(cors());
+
+	app.use(express.json());
 	app.use(express.urlencoded({ extended: true }))
-	app.use('/public',  express.static(__dirname + '/public'));		
-	app.use('/jquery', express.static(__dirname + '/node_modules/jquery/dist/'));		
+	
+	// Get all custodians //
+	app.get('/custodians', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
 
-	app.get('/', (req, res) => {
-		res.render('index', {title: "Dragonchain Asset Tracker"});
-	});	
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
 
-    app.use(function (err, req, res, next) {
-        console.log(err);
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
 
-        res.render('error', {
-            title: "Error - Dragonchain Asset Tracker",
-            error: err
-        });
-    });
+		const custodians = await helper.getCustodians(client);
+
+		res.json(custodians);
+	}));	
+
+	// Create a new custodian //
+	app.post('/custodians', awaitHandlerFactory(async (req, res) => {
+		
+	}));	
+
+	// Get a specific custodian //
+	app.get('/custodians/:custodianId', awaitHandlerFactory(async (req, res) => {
+		
+	}));	
+
+
+	// Get all assets //
+	app.get('/assets', awaitHandlerFactory(async (req, res) => {
+		
+	}));	
+
+	// Create a new asset //
+	app.post('/assets', awaitHandlerFactory(async (req, res) => {
+		
+	}));	
+
+	// Get a specific asset //
+	app.get('/assets/:assetId', awaitHandlerFactory(async (req, res) => {
+		
+	}));	
+	
+
+
+
 
 	// In production (optionally) use port 80 or, if SSL available, use port 443 //
-	const server = app.listen(3005, '127.0.0.1', () => {
+	const server = app.listen(3030, '127.0.0.1', () => {
 		console.log(`Express running → PORT ${server.address().port}`);
 	});
 }

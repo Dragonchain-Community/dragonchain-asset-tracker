@@ -3,11 +3,9 @@
   "version": "0.0.1",
   "main": "server.js",
   "dependencies": {
-    "cors": "^2.8.5",
     "dragonchain-sdk": "^4.0.0",
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
-    "helmet": "^3.21.2",
     "jquery": "^3.4.1",
     "moment": "^2.24.0",
     "request": "^2.88.0",
