@@ -96,30 +96,71 @@ const main = async() => {
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
 
-		let payload = {
-			"method":"create_custodian", 
-			"parameters":{
-				"custodian":{
-					"type":req.body.custodian.type
-				}				
-			}, 
-			"authentication":{
-				"custodianId":authenticatedCustodian.id
-			}
+		let custodian = {			
+			"type": req.body.custodian.type
 		};
 
 		if (req.body.custodian.external_data)
 		{
-			payload.parameters.custodian.external_data = req.body.custodian.external_data
+			custodian.external_data = req.body.custodian.external_data
 		}
 
-		res.json(payload);
+		const requestTxn = await helper.createCustodian(client, {custodian: custodian, authenticatedCustodian: authenticatedCustodian});
+
+		res.json(requestTxn);
 	}));
+
+	// Get all asset groups //
+	app.get('/asset-groups', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const assets = await helper.getAssetGroups(client, {custodianId: authenticatedCustodian.id});
+
+		res.json(assets);
+	}));	
+
+	// Get a specific asset group //
+	app.get('/asset-groups/:assetGroupId', awaitHandlerFactory(async (req, res) => {
+		
+	}));
+
+	// Create a new asset group //
+	app.post('/asset-groups', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		let asset_group = {			
+			name: req.body.asset_group.name,
+			description: req.body.asset_group.description
+		};
+
+		const requestTxn = await helper.createAssetGroup(client, {asset_group: asset_group, authenticatedCustodian: authenticatedCustodian});
+
+		res.json(requestTxn);
+	}));	
 
 
 	// Get all assets //
 	app.get('/assets', awaitHandlerFactory(async (req, res) => {
-		
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const assets = await helper.getAssets(client, {custodianId: authenticatedCustodian.id});
+
+		res.json(assets);
 	}));	
 
 	// Get a specific asset //
@@ -134,7 +175,25 @@ const main = async() => {
 
 	// Create a new asset //
 	app.post('/assets', awaitHandlerFactory(async (req, res) => {
-		
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		let asset = {			
+			assetGroupId: typeof req.body.asset.assetGroupId !== "undefined" ? req.body.asset.assetGroupId : null
+		};
+
+		if (req.body.asset.external_data)
+		{
+			asset.external_data = req.body.asset.external_data
+		}
+
+		const requestTxn = await helper.createAsset(client, {asset: asset, authenticatedCustodian: authenticatedCustodian});
+
+		res.json(requestTxn);
 	}));	
 	
 

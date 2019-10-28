@@ -34,7 +34,8 @@ const initialize = async () => {
             }        
         })
 
-        await sleep(2000);
+        // Wait at most 5-ish seconds for response to be written to a block //
+        await sleep(5500);
 
         const responseResults = await client.queryTransactions({
             transactionType: config.contractTxnType,
