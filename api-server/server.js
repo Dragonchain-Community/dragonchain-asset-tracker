@@ -89,6 +89,22 @@ const main = async() => {
 		res.json(custodian);
 	}));
 
+	// Get a custodian's assets //
+	app.get('/custodian/assets/:custodianId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+
+		const custodian = await helper.getCurrentCustodianObject(client, {custodianId: req.params.custodianId});
+
+		if (authenticatedCustodian.type != "authority" && authenticatedCustodian.id != custodian.id)
+			throw "Only the authority or the custodian may do that.";
+
+		const assetObjects = await Promise.all(custodian.assets.map(async aId => {return await helper.getCurrentAssetObject(client, {assetId: aId})}));
+
+		res.json(assetObjects);
+	}));
+
 	// Create a new custodian //
 	app.post('/custodians', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
@@ -282,7 +298,7 @@ const main = async() => {
 		if (authenticatedCustodian.id != fromCustodian.id)
 			throw "Only the current custodian of an asset may authorize its transfer.";
 
-		if (asset.currentTransferAuthorization != null)
+		if (asset.current_transfer_authorization != null)
 			throw "Only one asset transfer authorization may be active at a time.";
 
 		const requestTxn = await helper.authorizeAssetTransfer(client, {asset_transfer_authorization: req.body.asset_transfer_authorization, authenticatedCustodian: authenticatedCustodian});
@@ -305,7 +321,7 @@ const main = async() => {
 		if (asset.current_transfer_authorization.toCustodianId != null && asset.current_transfer_authorization.toCustodianId != authenticatedCustodian.id)
 			throw "The specified custodian is not authorized to accept transfer of that asset.";
 
-		const requestTxn = await helper.acceptAssetTransfer(client, {accept_transfer: req.body.asset_transfer, authenticatedCustodian: authenticatedCustodian});
+		const requestTxn = await helper.acceptAssetTransfer(client, {asset_transfer: req.body.asset_transfer, authenticatedCustodian: authenticatedCustodian});
 
 		res.json(requestTxn);
 	}));
