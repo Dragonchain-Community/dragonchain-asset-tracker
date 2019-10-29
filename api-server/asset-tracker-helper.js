@@ -10,7 +10,7 @@ const sleep = (ms) => {
 }
 
 // Escape a value for redisearch query purposes //
-const cleanRedisearchQueryValue = (value) => {
+const redisearchEncode = (value) => {
     return value.replace(/([^A-Za-z\d_]+)/g, '\\$1');
 }
 
@@ -18,8 +18,6 @@ const cleanRedisearchQueryValue = (value) => {
 const helper = {          
     waitForResponseTxn: async (client, requestTxnId) => {
         try {                    
-            const cleanRequestTxnId = cleanRedisearchQueryValue(requestTxnId);
-
             let responseTxn = null;
             let waitCount = 0;
             
@@ -27,7 +25,7 @@ const helper = {
             {
                 const results = await client.queryTransactions({
                     transactionType: config.contractTxnType,
-                    redisearchQuery: `@invoker:${cleanRequestTxnId}`
+                    redisearchQuery: `@invoker:{${redisearchEncode(requestTxnId)}}`
                 });
 
                 if (results.response.total > 0)
@@ -52,7 +50,7 @@ const helper = {
         try {
             const custodianTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@custodian_type:(authority|handler|owner)`,
+                redisearchQuery: `@custodian_type:{authority|handler|owner}`,
                 limit: 999999
             });
 
@@ -72,7 +70,7 @@ const helper = {
         try {
             const custodianTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@custodian_type:${options.type}`,
+                redisearchQuery: `@custodian_type:{${redisearchEncode(options.type)}}`,
                 limit: 999999
             });
 
@@ -90,11 +88,9 @@ const helper = {
 
     getCustodianByExternalId: async (client, options) => {    
         try {
-            const value = cleanRedisearchQueryValue(options.externalId);
-
             const custodianTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@custodian_external_data_external_id:${value}`
+                redisearchQuery: `@custodian_external_data_external_id:{${redisearchEncode(options.externalId)}}`
             });
 
             if (custodianTransactions.response.total > 0)
@@ -135,24 +131,65 @@ const helper = {
         }
     },
 
+    setCustodianExternalData: async (client, options) => {
+        try {
+            let payload = {
+                "method":"set_custodian_external_data", 
+                "parameters":{
+                    "custodian_external_data": options.custodian_external_data
+                }, 
+                "authentication":{
+                    "custodianId":options.authenticatedCustodian.id
+                }
+            };
+
+            const requestTxn = await client.createTransaction({
+                transactionType: config.contractTxnType,
+                payload: payload
+            })
+
+            return requestTxn;
+
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
     getAssetGroups: async (client, options) => {    
         try {            
-            const value = cleanRedisearchQueryValue(options.custodianId);
-
-            console.log(value);
-
             const assetGroupTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@asset_group_created_by_custodian_id:${value}`,
+                redisearchQuery: `@asset_group_created_by_custodian_id:{${redisearchEncode(options.custodianId)}}`,
                 limit: 999999
             });
 
-            console.log(`@asset_group_created_by_custodian_id:${options.custodianId}`);
             if (assetGroupTransactions.response.results)
             {
                 return assetGroupTransactions.response.results.map(result => {return result.payload.response.asset_group});
             } else 
                 return [];
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
+    getAssetGroup: async (client, options) => {    
+        try {                        
+            const assetGroupTransactions = await client.queryTransactions({
+                transactionType: config.contractTxnType,
+                redisearchQuery: `@asset_group_id:{${redisearchEncode(options.assetGroupId)}}`,
+                limit: 999999
+            });
+
+            if (assetGroupTransactions.response.results && assetGroupTransactions.response.results.length > 0)
+            {
+                return assetGroupTransactions.response.results[0].payload.response.asset_group;
+            } else 
+                throw `Asset group not found with ID ${options.assetGroupId}`;
         } catch (exception)
         {
             // Pass back to caller to handle gracefully //
@@ -188,11 +225,9 @@ const helper = {
 
     getAssets: async (client, options) => {    
         try {
-            const value = cleanRedisearchQueryValue(options.custodianId);
-
             const assetTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@asset_created_by_custodian_id:${value}`,
+                redisearchQuery: `@asset_created_by_custodian_id:{${redisearchEncode(options.custodianId)}}`,
                 limit: 999999
             });
 
@@ -208,12 +243,109 @@ const helper = {
         }
     },
 
+    getAssetByExternalId: async (client, options) => {    
+        try {
+            const assetTransactions = await client.queryTransactions({
+                transactionType: config.contractTxnType,
+                redisearchQuery: `@asset_external_data_external_id:{${redisearchEncode(options.externalId)}}`
+            });
+
+            if (assetTransactions.response.total > 0)
+            {
+                return assetTransactions.response.results[0].payload.response.asset;
+            } else 
+                throw `Asset not found with external ID ${options.externalId}`;
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
     createAsset: async (client, options) => {
         try {
             let payload = {
                 "method":"create_asset", 
                 "parameters":{
                     "asset": options.asset				
+                }, 
+                "authentication":{
+                    "custodianId":options.authenticatedCustodian.id
+                }
+            };
+
+            const requestTxn = await client.createTransaction({
+                transactionType: config.contractTxnType,
+                payload: payload
+            })
+
+            return requestTxn;
+
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
+    setAssetExternalData: async (client, options) => {
+        try {
+            let payload = {
+                "method":"set_asset_external_data", 
+                "parameters":{                    
+                    "asset_external_data": options.asset_external_data
+                }, 
+                "authentication":{
+                    "custodianId":options.authenticatedCustodian.id
+                }
+            };
+
+            const requestTxn = await client.createTransaction({
+                transactionType: config.contractTxnType,
+                payload: payload
+            })
+
+            return requestTxn;
+
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
+    authorizeAssetTransfer: async (client, options) => {
+        try {
+            let payload = {
+                "method":"authorize_asset_transfer", 
+                "parameters":{                    
+                    "asset_transfer_authorization": options.asset_transfer_authorization
+                }, 
+                "authentication":{
+                    "custodianId":options.authenticatedCustodian.id
+                }
+            };
+
+            const requestTxn = await client.createTransaction({
+                transactionType: config.contractTxnType,
+                payload: payload
+            })
+
+            return requestTxn;
+
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
+    acceptAssetTransfer: async (client, options) => {
+        try {
+            let payload = {
+                "method":"accept_asset_transfer", 
+                "parameters":{                    
+                    "asset_transfer": options.asset_transfer
                 }, 
                 "authentication":{
                     "custodianId":options.authenticatedCustodian.id

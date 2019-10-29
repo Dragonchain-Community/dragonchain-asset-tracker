@@ -14,7 +14,7 @@ const initialize = async () => {
     // Check for an authority //
     const results = await client.queryTransactions({
         transactionType: config.contractTxnType,
-        redisearchQuery: `@custodian_type:authority`
+        redisearchQuery: `@custodian_type:{authority}`
     })
 
     if (results.response.total == 0)
@@ -34,12 +34,12 @@ const initialize = async () => {
             }        
         })
 
-        // Wait at most 5-ish seconds for response to be written to a block //
-        await sleep(5500);
+        // Wait for response to be written to a block //
+        await sleep(6000);
 
         const responseResults = await client.queryTransactions({
             transactionType: config.contractTxnType,
-            redisearchQuery: `@custodian_type:authority`
+            redisearchQuery: `@custodian_type:{authority}`
         })
 
         authority = responseResults.response.results[0];

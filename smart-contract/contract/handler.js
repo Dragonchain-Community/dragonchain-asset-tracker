@@ -306,7 +306,7 @@ module.exports = async (input, callback) => {
             if (authenticatedCustodian.id != fromCustodian.id)
                 throw "Only the current custodian of an asset may authorize its transfer.";
 
-            if (asset.currentTransferAuthorization != null)
+            if (asset.current_transfer_authorization != null)
                 throw "Only one asset transfer authorization may be active at a time.";
 
             let responseObj = {
