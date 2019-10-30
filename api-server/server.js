@@ -25,12 +25,44 @@ const main = async() => {
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: true }))
+
+	// Basic authentication middleware (obviously not the way to handle things in a production system...) //
+	app.use(function (req, res, next) {
+			
+		// check for basic auth header
+		if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+			return res.status(401).json({ message: 'Missing Authorization Header' });
+		}
+	
+		// verify auth credentials
+		const base64Credentials =  req.headers.authorization.split(' ')[1];
+		const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+		const [username, password] = credentials.split(':');
+		
+		// Seriously. Don't use this in a production system. //
+		const authenticatedCustodianId = (password == "mypassword") ? username : undefined;
+
+		if (typeof authenticatedCustodianId === "undefined") 
+			return res.status(401).json({ message: 'Invalid Authentication Credentials' });		
+	
+		// attach user to request object
+		req.authenticatedCustodianId = authenticatedCustodianId
+		
+		next();
+	})
+
+	// Error handling //
+	app.use(function (err, req, res, next) {
+        console.error(err);
+
+        res.status(400).json({ message: err });
+    });
 	
 	// Get all custodians //
 	app.get('/custodians', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -49,7 +81,7 @@ const main = async() => {
 	app.get('/custodians/type/:type', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -63,7 +95,7 @@ const main = async() => {
 	app.get('/custodians/:custodianId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -77,7 +109,7 @@ const main = async() => {
 	app.get('/custodians/externalId/:externalId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -93,7 +125,7 @@ const main = async() => {
 	app.get('/custodian/assets/:custodianId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		const custodian = await helper.getCurrentCustodianObject(client, {custodianId: req.params.custodianId});
 
@@ -109,7 +141,7 @@ const main = async() => {
 	app.post('/custodians', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -132,7 +164,7 @@ const main = async() => {
 	app.post('/custodians/data', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority" && authenticatedCustodian.id != req.body.custodian_external_data.custodianId)
 			throw "Only the authority or the custodian may do that.";
@@ -151,7 +183,7 @@ const main = async() => {
 	app.get('/asset-groups', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -165,7 +197,7 @@ const main = async() => {
 	app.get('/asset-groups/:assetGroupId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -179,7 +211,7 @@ const main = async() => {
 	app.post('/asset-groups', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -199,7 +231,7 @@ const main = async() => {
 	app.get('/assets', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -215,7 +247,7 @@ const main = async() => {
 	app.get('/assets/:assetId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -229,7 +261,7 @@ const main = async() => {
 	app.get('/assets/externalId/:externalId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -245,7 +277,7 @@ const main = async() => {
 	app.post('/assets', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
@@ -268,7 +300,7 @@ const main = async() => {
 	app.post('/assets/data', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority may do that.";
@@ -288,7 +320,7 @@ const main = async() => {
 	app.post('/assets/authorize-transfer', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		const asset = await helper.getCurrentAssetObject(client, {assetId: req.body.asset_transfer_authorization.assetId});
 
@@ -311,7 +343,7 @@ const main = async() => {
 	app.post('/assets/transfer', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
-		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.body.authenticatedCustodianId});
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
 		const asset = await helper.getCurrentAssetObject(client, {assetId: req.body.asset_transfer.assetId});
 
@@ -327,7 +359,16 @@ const main = async() => {
 	}));
 	
 
+	// Get a specific asset //
+	app.get('/verifications/:objectId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
 
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
+
+		const verifications = await helper.getBlockVerificationsForTxnId(client, {objectId: req.params.objectId});
+
+		res.json(verifications);
+	}));
 
 
 	// In production (optionally) use port 80 or, if SSL available, use port 443 //

@@ -45,9 +45,6 @@ const helper = {
     },
 
     getCurrentAssetObject: async (client, options) => {
-        // If user passed a contract ID, use that, otherwise pull from the smart contract's environment variables (must be running inside a contract for that to work) //
-        const contractId = typeof options.contractId !== "undefined" ? options.contractId : process.env.SMART_CONTRACT_ID;
-
         try {
             const assetObjectResponse = await client.getSmartContractObject({key:`asset-${options.assetId}`})
 
@@ -94,6 +91,7 @@ module.exports = async (input, callback) => {
             }
 
             let responseObj = {
+                "type": "custodian",                
                 "custodian": {
                     "id": inputObj.header.txn_id,                    
                     "type": inCustodian.type
@@ -102,6 +100,7 @@ module.exports = async (input, callback) => {
 
             if (inCustodianExternalData)
             {
+                responseObj.type += ",custodian_external_data";
                 responseObj.custodian_external_data = {
                     "id": inputObj.header.txn_id,
                     "custodianId": inputObj.header.txn_id,                    
@@ -137,6 +136,7 @@ module.exports = async (input, callback) => {
             callback(undefined, 
                 {
                     "response": {
+                        "type": "asset_group",
                         "asset_group": {
                             "id": inputObj.header.txn_id,
                             "custodianId": authenticatedCustodian.id,
@@ -160,7 +160,8 @@ module.exports = async (input, callback) => {
             if (authenticatedCustodian.type != "authority")
                 throw "Only the authority custodian may create assets.";
 
-            let responseObj = {                
+            let responseObj = {         
+                "type": "asset,asset_transfer",       
                 "asset": {
                     "id": inputObj.header.txn_id,
                     "custodianId": authenticatedCustodian.id,
@@ -177,6 +178,7 @@ module.exports = async (input, callback) => {
 
             if (inAssetExternalData)
             {
+                response.type += ",asset_external_data";
                 responseObj.asset_external_data = {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,
@@ -186,6 +188,7 @@ module.exports = async (input, callback) => {
 
             if (inAssetTransferAuthorization)
             {
+                response.type += ",asset_transfer_authorization";
                 responseObj.asset_transfer_authorization = {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,
@@ -238,6 +241,7 @@ module.exports = async (input, callback) => {
                 throw "Only an asset's creator may set its external data.";
 
             let responseObj = {
+                "type":"asset_external_data",
                 "asset_external_data": {
                     "id": inputObj.header.txn_id,
                     "assetId": asset.id,
@@ -271,6 +275,7 @@ module.exports = async (input, callback) => {
                 throw "Only the authority or the custodian may set its external data.";
 
             let responseObj = {
+                "type":"custodian_external_data",
                 "custodian_external_data": {
                     "id": inputObj.header.txn_id,
                     "custodianId": custodian.id,
@@ -310,6 +315,7 @@ module.exports = async (input, callback) => {
                 throw "Only one asset transfer authorization may be active at a time.";
 
             let responseObj = {
+                "type":"asset_transfer_authorization",
                 "asset_transfer_authorization": {
                     "id": inputObj.header.txn_id,
                     "assetId": asset.id,
@@ -348,6 +354,7 @@ module.exports = async (input, callback) => {
             let fromCustodian = await helper.getCurrentCustodianObject(client, {custodianId: asset.current_transfer_authorization.fromCustodianId});
 
             let responseObj = {
+                "type":"asset_transfer",
                 "asset_transfer": {
                     "id": inputObj.header.txn_id,
                     "assetId": asset.id,

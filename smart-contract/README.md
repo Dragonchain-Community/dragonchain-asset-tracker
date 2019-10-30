@@ -42,46 +42,31 @@ Accept Asset Transfer:
 
 The following custom indexes should be created when deploying this contract (see the example DCTL install command):
 
+- Response Type:
+
+```{"fieldName":"response_type", "path":"$.response.type","type":"tag"}```
 
 - Custodian Info: 
-
-```{"fieldName":"custodian_id", "path":"$.response.custodian.id","type":"tag"}```
 
 ```{"fieldName":"custodian_type", "path":"$.response.custodian.type","type":"tag"}```
 
 - Custodian External Data Info:
 
-```{"fieldName":"custodian_external_data_id", "path":"$.response.custodian_external_data.id","type":"tag"}```
-
 ```{"fieldName":"custodian_external_data_custodian_id", "path":"$.response.custodian_external_data.custodianId","type":"tag"}```
 
 ```{"fieldName":"custodian_external_data_external_id", "path":"$.response.custodian_external_data.external_data.id","type":"tag"}```
 
-- Asset Group Info:
-
-```{"fieldName":"asset_group_id", "path":"$.response.asset_group.id","type":"tag"}```
-
-```{"fieldName":"asset_group_created_by_custodian_id", "path":"$.response.asset_group.custodianId","type":"tag"}```
-
 - Asset Info:
-
-```{"fieldName":"asset_id", "path":"$.response.asset.id","type":"tag"}```
-
-```{"fieldName":"asset_created_by_custodian_id", "path":"$.response.asset.custodianId","type":"tag"}```
 
 ```{"fieldName":"asset_assigned_asset_group_id", "path":"$.response.asset.assetGroupId","type":"tag"}```
 
 - Asset External Data Info:
-
-```{"fieldName":"asset_external_data_id", "path":"$.response.asset_external_data.id","type":"tag"}```
 
 ```{"fieldName":"asset_external_data_asset_id", "path":"$.response.asset_external_data.assetId","type":"tag"}```
 
 ```{"fieldName":"asset_external_data_external_id", "path":"$.response.asset_external_data.external_data.id","type":"tag"}```
 
 - Asset Transfer Info:
-
-```{"fieldName":"asset_transfer_id", "path":"$.response.asset_transfer.id","type":"tag"}```
 
 ```{"fieldName":"asset_transfer_asset_id", "path":"$.response.asset_transfer.assetId","type":"tag"}```
 
@@ -92,8 +77,6 @@ The following custom indexes should be created when deploying this contract (see
 ```{"fieldName":"asset_transfer_to_custodian_id", "path":"$.response.asset_transfer.toCustodianId","type":"tag"}```
 
 - Asset Transfer Authorization Info:
-
-```{"fieldName":"asset_transfer_authorization_id", "path":"$.response.asset_transfer_authorization.id","type":"tag"}```
 
 ```{"fieldName":"asset_transfer_authorization_asset_id", "path":"$.response.asset_transfer_authorization.assetId","type":"tag"}```
 
@@ -112,5 +95,5 @@ mydockerhub/asset-tracker:latest \
 node index.js \
 -s \
 -r MYBASE64ENCODEDUSERNAMEPASSWORD \
---customIndexes '[{"fieldName":"custodian_id","path":"$.response.custodian.id","type":"tag"},{"fieldName":"custodian_type","path":"$.response.custodian.type","type":"tag"},{"fieldName":"custodian_external_data_id","path":"$.response.custodian_external_data.id","type":"tag"},{"fieldName":"custodian_external_data_custodian_id","path":"$.response.custodian_external_data.custodianId","type":"tag"},{"fieldName":"custodian_external_data_external_id","path":"$.response.custodian_external_data.external_data.id","type":"tag"},{"fieldName":"asset_group_id","path":"$.response.asset_group.id","type":"tag"},{"fieldName":"asset_group_created_by_custodian_id","path":"$.response.asset_group.custodianId","type":"tag"},{"fieldName":"asset_id","path":"$.response.asset.id","type":"tag"},{"fieldName":"asset_created_by_custodian_id","path":"$.response.asset.custodianId","type":"tag"},{"fieldName":"asset_assigned_asset_group_id","path":"$.response.asset.assetGroupId","type":"tag"},{"fieldName":"asset_external_data_id","path":"$.response.asset_external_data.id","type":"tag"},{"fieldName":"asset_external_data_asset_id","path":"$.response.asset_external_data.assetId","type":"tag"},{"fieldName":"asset_external_data_external_id","path":"$.response.asset_external_data.external_data.id","type":"tag"},{"fieldName":"asset_transfer_id","path":"$.response.asset_transfer.id","type":"tag"},{"fieldName":"asset_transfer_asset_id","path":"$.response.asset_transfer.assetId","type":"tag"},{"fieldName":"asset_transfer_asset_transfer_authorization_id","path":"$.response.asset_transfer.assetTransferAuthorizationId","type":"tag"},{"fieldName":"asset_transfer_from_custodian_id","path":"$.response.asset_transfer.fromCustodianId","type":"tag"},{"fieldName":"asset_transfer_to_custodian_id","path":"$.response.asset_transfer.toCustodianId","type":"tag"},{"fieldName":"asset_transfer_authorization_id","path":"$.response.asset_transfer_authorization.id","type":"tag"},{"fieldName":"asset_transfer_authorization_asset_id","path":"$.response.asset_transfer_authorization.assetId","type":"tag"},{"fieldName":"asset_transfer_authorization_from_custodian_id","path":"$.response.asset_transfer_authorization.fromCustodianId","type":"tag"},{"fieldName":"asset_transfer_authorization_to_custodian_id","path":"$.response.asset_transfer_authorization.toCustodianId","type":"tag"}]'
+--customIndexes '[{"fieldName":"response_type","path":"$.response.type","type":"tag"},{"fieldName":"custodian_type","path":"$.response.custodian.type","type":"tag"},{"fieldName":"custodian_external_data_custodian_id","path":"$.response.custodian_external_data.custodianId","type":"tag"},{"fieldName":"custodian_external_data_external_id","path":"$.response.custodian_external_data.external_data.id","type":"tag"},{"fieldName":"asset_assigned_asset_group_id","path":"$.response.asset.assetGroupId","type":"tag"},{"fieldName":"asset_external_data_asset_id","path":"$.response.asset_external_data.assetId","type":"tag"},{"fieldName":"asset_external_data_external_id","path":"$.response.asset_external_data.external_data.id","type":"tag"},{"fieldName":"asset_transfer_asset_id","path":"$.response.asset_transfer.assetId","type":"tag"},{"fieldName":"asset_transfer_asset_transfer_authorization_id","path":"$.response.asset_transfer.assetTransferAuthorizationId","type":"tag"},{"fieldName":"asset_transfer_from_custodian_id","path":"$.response.asset_transfer.fromCustodianId","type":"tag"},{"fieldName":"asset_transfer_to_custodian_id","path":"$.response.asset_transfer.toCustodianId","type":"tag"},{"fieldName":"asset_transfer_authorization_asset_id","path":"$.response.asset_transfer_authorization.assetId","type":"tag"},{"fieldName":"asset_transfer_authorization_from_custodian_id","path":"$.response.asset_transfer_authorization.fromCustodianId","type":"tag"},{"fieldName":"asset_transfer_authorization_to_custodian_id","path":"$.response.asset_transfer_authorization.toCustodianId","type":"tag"}]'
 ```

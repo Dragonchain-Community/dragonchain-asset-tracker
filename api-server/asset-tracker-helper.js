@@ -50,7 +50,7 @@ const helper = {
         try {
             const custodianTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@custodian_type:{authority|handler|owner}`,
+                redisearchQuery: `@response_type:{custodian}`,
                 limit: 999999
             });
 
@@ -161,7 +161,7 @@ const helper = {
         try {            
             const assetGroupTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@asset_group_created_by_custodian_id:{${redisearchEncode(options.custodianId)}}`,
+                redisearchQuery: `@response_type:{asset_group}`,
                 limit: 999999
             });
 
@@ -181,7 +181,7 @@ const helper = {
         try {                        
             const assetGroupTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@asset_group_id:{${redisearchEncode(options.assetGroupId)}}`,
+                redisearchQuery: `@response_type:{asset_group} @invoker:{${redisearchEncode(options.assetGroupId)}}`,
                 limit: 999999
             });
 
@@ -227,7 +227,7 @@ const helper = {
         try {
             const assetTransactions = await client.queryTransactions({
                 transactionType: config.contractTxnType,
-                redisearchQuery: `@asset_created_by_custodian_id:{${redisearchEncode(options.custodianId)}}`,
+                redisearchQuery: `@response_type:{asset}`,
                 limit: 999999
             });
 
@@ -393,6 +393,30 @@ const helper = {
                 throw responseObj.error.details;
 
             return responseObj;
+        } catch (exception)
+        {            
+            throw exception
+        }
+    },
+
+    // Get verifications for a specific object ID (object IDs = transaction REQUEST ID) //
+    getBlockVerificationsForTxnId: async(client, options) => {
+        try {
+            // Get the RESPONSE transaction for the transaction ID/object ID //
+            const txnResponse = await client.queryTransactions({
+                transactionType: config.contractTxnType,
+                redisearchQuery: `@invoker:{${redisearchEncode(options.objectId)}}`,
+                limit: 999999
+            });
+
+            if (txnResponse.response.results && txnResponse.response.results.length > 0)
+            {                
+                const verificationsResponse = await client.getVerifications({blockId:txnResponse.response.results[0].header.block_id});
+            
+                return verificationsResponse.response;
+            } else {
+                throw "Object not found.";
+            }
         } catch (exception)
         {            
             throw exception
