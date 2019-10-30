@@ -178,7 +178,7 @@ module.exports = async (input, callback) => {
 
             if (inAssetExternalData)
             {
-                response.type += ",asset_external_data";
+                responseObj.type += ",asset_external_data";
                 responseObj.asset_external_data = {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,
@@ -188,7 +188,7 @@ module.exports = async (input, callback) => {
 
             if (inAssetTransferAuthorization)
             {
-                response.type += ",asset_transfer_authorization";
+                responseObj.type += ",asset_transfer_authorization";
                 responseObj.asset_transfer_authorization = {
                     "id": inputObj.header.txn_id,
                     "assetId": inputObj.header.txn_id,

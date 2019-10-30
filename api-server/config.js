@@ -3,5 +3,5 @@ module.exports = {
     contractTxnType: "asset_tracker",
 
     // This id should be set after deploying the contract in case certain helper methods are needed outside of the contract //
-    contractId: "0228fff7-0ca0-4b32-ab30-edbbab381f03"
+    contractId: "41abcf6e-c4c0-45f6-ba47-979544a192cc"
 }
