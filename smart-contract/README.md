@@ -16,7 +16,9 @@ Set Custodian External Data:
 
 Create Asset Group:
 
-```{"method":"create_asset_group", "parameters":{"asset_group":{"name": "Nike HMDs", "description":"2019 line of Nike Hand-Me-Downs"}}, "authentication":{"custodianId":"12345"}}```
+```{"method":"create_asset_group", "parameters":{"asset_group":{"name": "Nike HMDs", "description":"2019 line of Nike Hand-Me-Downs", "maxSupply":null}}, "authentication":{"custodianId":"12345"}}```
+
+```{"method":"create_asset_group", "parameters":{"asset_group":{"name": "Nike HMDs Limited Edition", "description":"2019 line of Nike Hand-Me-Downs limited to 100 pairs.", "maxSupply":100}}, "authentication":{"custodianId":"12345"}}```
 
 Create Asset:
 

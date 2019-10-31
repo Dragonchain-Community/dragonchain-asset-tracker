@@ -44,6 +44,22 @@ const helper = {
         }
     },
 
+    getCurrentAssetGroupObject: async (client, options) => {
+        try {
+            const assetGroupObjectResponse = await client.getSmartContractObject({key:`asset-group-${options.assetGroupId}`})
+
+            const responseObj = JSON.parse(assetGroupObjectResponse.response);
+            
+            if (responseObj.error)
+                throw responseObj.error.details;
+
+            return responseObj;
+        } catch (exception)
+        {            
+            throw exception
+        }
+    },
+
     getCurrentAssetObject: async (client, options) => {
         try {
             const assetObjectResponse = await client.getSmartContractObject({key:`asset-${options.assetId}`})
@@ -133,17 +149,36 @@ module.exports = async (input, callback) => {
             if (authenticatedCustodian.type != "authority")
                 throw "Only the authority custodian may create asset groups.";
 
+            if (typeof inAssetGroup.maxSupply !== "undefined" && inAssetGroup.maxSupply != null && !Number.isInteger(inAssetGroup.maxSupply))
+                throw "Asset group max supply must be null to indicate an unlimited supply or an integer.";
+
+            let responseObj = {
+                "type": "asset_group",
+                "asset_group": {
+                    "id": inputObj.header.txn_id,
+                    "custodianId": authenticatedCustodian.id,
+                    "name": inAssetGroup.name,
+                    "description": inAssetGroup.description,
+                    "maxSupply": typeof inAssetGroup.maxSupply !== "undefined" ? inAssetGroup.maxSupply : null
+                }
+            }
+
+            // Create the asset object to be written to heap //
+            const assetGroupKey = `asset-group-${inputObj.header.txn_id}`;
+
+            let assetGroup = {
+                "id": responseObj.asset_group.id,
+                "custodianId": responseObj.asset_group.custodianId,
+                "name": responseObj.asset_group.name,
+                "description": responseObj.asset_group.description,
+                "maxSupply": responseObj.asset_group.maxSupply,
+                "issuedSupply": 0
+            }
+                
             callback(undefined, 
                 {
-                    "response": {
-                        "type": "asset_group",
-                        "asset_group": {
-                            "id": inputObj.header.txn_id,
-                            "custodianId": authenticatedCustodian.id,
-                            "name": inAssetGroup.name,
-                            "description": inAssetGroup.description
-                        }
-                    }
+                    "response": responseObj,
+                    [assetGroupKey]: assetGroup
                 }
             );
 
@@ -160,12 +195,25 @@ module.exports = async (input, callback) => {
             if (authenticatedCustodian.type != "authority")
                 throw "Only the authority custodian may create assets.";
 
+            if (typeof inAsset.assetGroupId === "undefined")
+                throw "Asset group must be specified.";
+
+            const assetGroupObject = await helper.getCurrentAssetGroupObject(client, {assetGroupId: inAsset.assetGroupId});
+
+            // Ensure we aren't violating max supply //
+            if (assetGroupObject.issuedSupply + 1 > assetGroupObject.maxSupply)
+                throw `Max supply has been reached for asset group ${assetGroupObject.name}.`;
+
             let responseObj = {         
                 "type": "asset,asset_transfer",       
                 "asset": {
                     "id": inputObj.header.txn_id,
                     "custodianId": authenticatedCustodian.id,
-                    "assetGroupId": typeof inAsset.assetGroupId !== "undefined" ? inAsset.assetGroupId : null
+                    "assetGroupId": inAsset.assetGroupId,
+                    "assetGroupSupplyRecord": {
+                        "number": assetGroupObject.issuedSupply + 1,
+                        "of": assetGroupObject.maxSupply
+                    } 
                 },
                 "asset_transfer": {
                     "id": inputObj.header.txn_id,
@@ -202,13 +250,23 @@ module.exports = async (input, callback) => {
 
             authenticatedCustodian.assets.push(responseObj.asset.id);
 
+            // Update the asset group object to be written to heap //
+            const assetGroupKey = `asset-group-${assetGroupObject.id}`;
+
+            // Let a programmer have SOME fun //
+            assetGroupObject.issuedSupply -= -1;
+
             // Create the asset object to be written to heap //
             const assetKey = `asset-${inputObj.header.txn_id}`;
 
             let asset = {
                 "id": responseObj.asset.id,
                 "custodianId": responseObj.asset.custodianId,
-                "assetGroupId": responseObj.asset.assetGroupId
+                "assetGroupId": responseObj.asset.assetGroupId,
+                "assetGroupSupplyRecord": {
+                    "number": responseObj.asset.assetGroupSupplyRecord.number,
+                    "of": responseObj.asset.assetGroupSupplyRecord.of
+                }
             }
 
             asset.last_transfer = responseObj.asset_transfer;
@@ -222,6 +280,7 @@ module.exports = async (input, callback) => {
                 {
                     "response": responseObj,
                     [custodianKey]: authenticatedCustodian,
+                    [assetGroupKey]: assetGroupObject,
                     [assetKey]: asset
                 }
             );

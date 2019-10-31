@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 
-const helper = require('./asset-tracker-helper');
+const helper = require('./asset-tracker-api-helper');
 
 const app = express();
 
@@ -195,7 +195,7 @@ const main = async() => {
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
 
-		const asset_group = await helper.getAssetGroup(client, {assetGroupId: req.params.assetGroupId});
+		const asset_group = await helper.getCurrentAssetGroupObject(client, {assetGroupId: req.params.assetGroupId});
 
 		res.json(asset_group);
 	}));
