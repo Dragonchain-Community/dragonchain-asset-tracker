@@ -1,4 +1,4 @@
-var authorityCustodianId = "b49f5461-e821-427a-a657-d32d01f53bce";
+var authorityCustodianId = "54d194ce-74b4-4554-85a4-d7ba5adb9cd7";
 
 var state = {
     currentAuthenticatedCustodianId: authorityCustodianId,
@@ -8,8 +8,241 @@ var state = {
 } 
 
 var tools = {
-    getCustodians: () => {        
-        $.ajax(
+    setView: async (options) => {
+
+        if (options.view == "custodians")
+        {
+            $("#current-view-title").text("Custodians")
+
+            $("#current-view-content").html($("#loading").html())
+
+            var custodians = await tools.getCustodians();
+
+            console.log (custodians);
+
+            if (typeof custodians !== "undefined")
+            {
+                state.custodians = custodians;
+
+                var table = $("<table>")
+                                .addClass("table")
+                                .append(
+                                    $("<thead/>").addClass("thead-dark")
+                                        .append(
+                                            $("<tr/>")
+                                                .append($("<th/>").text("Custodian Type"))
+                                                .append($("<th/>").text("Custodian ID"))
+                                                .append($("<th/>").text("Custodian Name"))
+                                                .append($("<th/>").text("Custodian Description"))
+                                                .append($("<th/>").text("Current Assets"))
+                                        )
+                                )
+
+
+                $.each (custodians, function (index, item) {
+                    table.append(
+                        $("<tr/>")
+                            .append($("<td/>").text(item.type))
+                            .append($("<td/>").text(item.id))
+                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
+                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
+                            .append($("<td/>")
+                                .append(
+                                    item.assets.length > 0 ? $("<button/>").addClass("btn btn-primary set-view").attr("rel", "custodian-assets").attr("data-id", item.id).html("View Assets <span class='badge badge-light'>" + item.assets.length + "</span>") : $("<span/>").text("N/A")
+                                )
+                            )
+                    )
+                })
+
+                $("#current-view-content").html(table);
+            }
+            
+        }
+
+        if (options.view == "asset-groups")
+        {
+            $("#current-view-title").text("Asset Groups")
+
+            $("#current-view-content").html($("#loading").html())
+
+            var assetGroups = await tools.getAssetGroups();
+
+            if (typeof assetGroups !== "undefined")
+            {
+                state.assetGroups = assetGroups;
+
+                var table = $("<table>")
+                                .addClass("table")
+                                .append(
+                                    $("<thead/>").addClass("thead-dark")
+                                        .append(
+                                            $("<tr/>")                                                
+                                                .append($("<th/>").text("Asset Group ID"))
+                                                .append($("<th/>").text("Asset Group Name"))
+                                                .append($("<th/>").text("Asset Group Description"))
+                                        )
+                                )
+
+
+                $.each (assetGroups, function (index, item) {
+                    table.append(
+                        $("<tr/>")                            
+                            .append($("<td/>").text(item.id))                            
+                            .append($("<td/>").text(item.name))
+                            .append($("<td/>").text(item.description))
+                            
+                    )
+                })
+
+                $("#current-view-content").html(table);
+            }
+        }
+
+        if (options.view == "assets")
+        {
+            $("#current-view-title").text("Assets")
+
+            $("#current-view-content").html($("#loading").html())
+
+            var assets = await tools.getAssets();
+
+            console.log(assets);
+
+            if (typeof assets !== "undefined")
+            {
+                state.assets = assets;
+
+                var table = $("<table>")
+                                .addClass("table")
+                                .append(
+                                    $("<thead/>").addClass("thead-dark")
+                                        .append(
+                                            $("<tr/>")                                                
+                                                .append($("<th/>").text("Item ID"))                                                
+                                                .append($("<th/>").text("Item External ID"))
+                                                .append($("<th/>").text("Item Name"))
+                                                .append($("<th/>").text("Item Description"))
+                                                .append($("<th/>").text("View Details"))
+                                        )
+                                )
+
+
+                $.each (assets, function (index, item) {
+                    table.append(
+                        $("<tr/>")                            
+                            .append($("<td/>").text(item.id))                            
+                            .append($("<td/>").text(typeof item.current_external_data.id !== "undefined" ? item.current_external_data.id : "N/A"))
+                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
+                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
+                            .append($("<td/>")
+                                .append(
+                                    $("<button/>").addClass("btn btn-primary load-modal-view").attr("rel", "asset-details").attr("data-id", item.id).html("View Details")
+                                )
+                            )
+                    )
+                })
+
+                $("#current-view-content").html(table);
+            }
+        }
+        
+        if (options.view == "custodian-assets")
+        {
+            $("#current-view-title").text("Custodian Assets")
+
+            $("#current-view-content").html($("#loading").html())
+
+            var custodian = await tools.getCustodian(options.id);
+
+            $("#current-view-title").text("Custodian Assets for " + custodian.id + " (" + custodian.type + ")")
+
+            var assets = await tools.getCustodianAssets(options.id);
+
+            if (typeof assets !== "undefined")
+            {
+                state.assets = assets;
+
+                var table = $("<table>")
+                                .addClass("table")
+                                .append(
+                                    $("<thead/>").addClass("thead-dark")
+                                        .append(
+                                            $("<tr/>")                                                
+                                                .append($("<th/>").text("Item ID"))                                                
+                                                .append($("<th/>").text("Item External ID"))
+                                                .append($("<th/>").text("Item Name"))
+                                                .append($("<th/>").text("Item Description"))
+                                                .append($("<th/>").text("View Details"))
+                                        )
+                                )
+
+
+                $.each (assets, function (index, item) {
+                    table.append(
+                        $("<tr/>")                            
+                            .append($("<td/>").text(item.id))                            
+                            .append($("<td/>").text(typeof item.current_external_data.id !== "undefined" ? item.current_external_data.id : "N/A"))
+                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
+                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
+                            .append($("<td/>")
+                                .append(
+                                    $("<button/>").addClass("btn btn-primary load-modal-view").attr("rel", "asset-details").attr("data-id", item.id).html("View Details")
+                                )
+                            )
+                    )
+                })
+
+                $("#current-view-content").html(table);
+            }
+        }
+    },
+
+    loadModalView: async (options) => {
+
+        if (options.view == "asset-details")
+        {
+            $("#modal .modal-title").text("Asset Details")
+
+            $("#modal .modal-body .container-fluid").html($("#loading").html())
+
+            $("#modal").modal();
+
+            var asset = await tools.getAsset(options.id);
+
+            console.log (asset);
+
+            if (typeof asset !== "undefined")
+            {
+                var div = $("<div/>").addClass("row");
+
+                if (typeof asset.current_external_data.data.image_url != "undefined")
+                {
+                    div.append(
+                        $("<div/>")
+                            .addClass("col-3")
+                            .append(
+                                $("<img/>")
+                                    .attr("src", asset.current_external_data.data.image_url)
+                                    .addClass("img-fluid img-thumbnail")
+                            )
+                    )
+                }
+
+                div.append(
+                    $("<div/>")
+                        .addClass("col-9")
+                        .append($("<pre/>").html(JSON.stringify(asset, null, 2)))
+                )
+
+                $("#modal .modal-body .container-fluid").html(div);
+            }
+            
+        }
+        
+    },
+
+    getCustodians: async () => {        
+        return $.ajax(
             "http://127.0.0.1:3030/custodians/",
             {
                 type: "GET",            
@@ -20,23 +253,133 @@ var tools = {
             }
         )
             .done(function (data) {
-                
-                $.each (data, function (index, item) {
-                    $("#main-content").append(
-                        $("<p/>")
-                            .html(
-                                JSON.stringify(item,null,2)
-                            )
-                    )
-                })
+                return data;                
             })
             .catch(function (error) {
-                console.log(error.responseText)
+                console.error(error.responseJSON.message)
+            })
+            
+    },
+
+    getCustodian: async (objectId) => {        
+        return $.ajax(
+            "http://127.0.0.1:3030/custodians/" + objectId,
+            {
+                type: "GET",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                }
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
+            })
+            
+    },
+
+    getCustodianAssets: async (objectId) => {        
+        return $.ajax(
+            "http://127.0.0.1:3030/custodian/assets/" + objectId,
+            {
+                type: "GET",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                }
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
+            })
+            
+    },
+
+    getAssetGroups: async () => {        
+        return $.ajax(
+            "http://127.0.0.1:3030/asset-groups/",
+            {
+                type: "GET",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                }
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
+            })
+            
+    },
+
+    getAssets: async () => {        
+        return $.ajax(
+            "http://127.0.0.1:3030/assets/",
+            {
+                type: "GET",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                }
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
+            })
+            
+    },
+
+    getAsset: async (objectId) => {        
+        return $.ajax(
+            "http://127.0.0.1:3030/assets/" + objectId,
+            {
+                type: "GET",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                }
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
             })
             
     }
 }
 
 $().ready(() => {
-    tools.getCustodians();
+    tools.setView({view: "custodians"});
+
+    $(document).on("click", ".set-view", function () {
+        $(".set-view").removeClass("active")
+        
+        $(this).addClass("active")
+
+        tools.setView({
+            view: $(this).attr("rel"),
+            id: $(this).attr("data-id") 
+        })        
+    })
+
+    $(document).on("click", ".load-modal-view", function () {
+        tools.loadModalView({
+            view: $(this).attr("rel"),
+            id: $(this).attr("data-id") 
+        })        
+    })
 })

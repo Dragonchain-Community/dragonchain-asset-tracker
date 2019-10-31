@@ -8,50 +8,75 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
+    <link href="dashboard.css" rel="stylesheet">
+
     <title>Dragonchain Asset Tracker Demo</title>
-
-    <style>
-        main > .container {
-            padding: 60px 15px 0;
-        }
-    </style>
   </head>
-  <body class="d-flex flex-column h-100">
-    <header>
-        <!-- Fixed navbar -->
-        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-            <a class="navbar-brand" href="#">Dragonchain Asset Tracker Demo</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="#">Custodians</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Asset Groups</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Assets</a>
-                    </li>
-                </ul>            
-            </div>
+  <body>
+        <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+            <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Dragonchain Asset Tracker Demo</a>                
         </nav>
-    </header>
-
-    <!-- Begin page content -->
-    <main role="main" class="flex-shrink-0">
-        <div id="main-content" class="container">
-
+        
+        <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">                        
+                    <li class="nav-item">
+                        <a class="nav-link active set-view" rel="custodians" href="#">                    
+                        Custodians
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link set-view" rel="asset-groups" href="#">                    
+                        Asset Groups
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link set-view" rel="assets" href="#">                    
+                        Assets
+                        </a>
+                    </li>
+                    </ul>                
+                </div>
+            </nav>
+        
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 id="current-view-title" class="h2"></h1>                    
+                </div>        
+                <div id="current-view-content"></div>
+            </main>
         </div>
-    </main>
+    </div>
+
+    <div id="loading" class="invisible">
+        <div class="text-center mt-5">
+            <div class="spinner-grow text-primary" style="width: 4rem; height: 4rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New message</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body"><div class="container-fluid"></div></div>
+            </div>
+        </div>
+    </div>
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
+    
     <script src="asset-tools.js"></script>
 
   </body>

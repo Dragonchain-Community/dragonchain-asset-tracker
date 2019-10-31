@@ -50,13 +50,6 @@ const main = async() => {
 		
 		next();
 	})
-
-	// Error handling //
-	app.use(function (err, req, res, next) {
-        console.error(err);
-
-        res.status(400).json({ message: err });
-    });
 	
 	// Get all custodians //
 	app.get('/custodians', awaitHandlerFactory(async (req, res) => {
@@ -370,6 +363,12 @@ const main = async() => {
 		res.json(verifications);
 	}));
 
+	// Error handling //
+	app.use(function (err, req, res, next) {
+		console.error(err);
+
+		res.status(400).json({ message: err });
+	});
 
 	// In production (optionally) use port 80 or, if SSL available, use port 443 //
 	const server = app.listen(3030, '127.0.0.1', () => {
