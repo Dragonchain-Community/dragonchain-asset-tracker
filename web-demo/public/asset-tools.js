@@ -18,8 +18,6 @@ var tools = {
 
             var custodians = await tools.getCustodians();
 
-            console.log (custodians);
-
             if (typeof custodians !== "undefined")
             {
                 state.custodians = custodians;
@@ -43,7 +41,7 @@ var tools = {
                     table.append(
                         $("<tr/>")
                             .append($("<td/>").text(item.type))
-                            .append($("<td/>").text(item.id))
+                            .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))
                             .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
                             .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
                             .append($("<td/>")
@@ -87,7 +85,7 @@ var tools = {
                 $.each (assetGroups, function (index, item) {
                     table.append(
                         $("<tr/>")                            
-                            .append($("<td/>").text(item.id))                            
+                            .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))  
                             .append($("<td/>").text(item.name))
                             .append($("<td/>").text(item.description))
                             
@@ -105,8 +103,6 @@ var tools = {
             $("#current-view-content").html($("#loading").html())
 
             var assets = await tools.getAssets();
-
-            console.log(assets);
 
             if (typeof assets !== "undefined")
             {
@@ -130,7 +126,7 @@ var tools = {
                 $.each (assets, function (index, item) {
                     table.append(
                         $("<tr/>")                            
-                            .append($("<td/>").text(item.id))                            
+                            .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))                            
                             .append($("<td/>").text(typeof item.current_external_data.id !== "undefined" ? item.current_external_data.id : "N/A"))
                             .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
                             .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
@@ -180,7 +176,7 @@ var tools = {
                 $.each (assets, function (index, item) {
                     table.append(
                         $("<tr/>")                            
-                            .append($("<td/>").text(item.id))                            
+                            .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))                            
                             .append($("<td/>").text(typeof item.current_external_data.id !== "undefined" ? item.current_external_data.id : "N/A"))
                             .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
                             .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
@@ -239,6 +235,48 @@ var tools = {
             
         }
         
+        if (options.view == "object-verifications")
+        {
+            $("#modal .modal-title").text("Dragon Net Object Verifications")
+
+            $("#modal .modal-body .container-fluid").html($("#loading").html())
+
+            $("#modal").modal();
+
+            var verifications = await tools.getObjectVerifications(options.id);
+
+            if (typeof verifications !== "undefined")
+            {
+                var table = $("<table>")
+                                .addClass("table")
+                                .append(
+                                    $("<thead/>").addClass("thead-dark")
+                                        .append(
+                                            $("<tr/>")
+                                                .append($("<th/>").text("Node Level"))
+                                                .append($("<th/>").text("Resource Name"))
+                                                .append($("<th/>").text("TIME Applied"))
+                                                .append($("<th/>").text("Date of Verification"))
+                                        )
+                                )
+
+
+                $.each (verifications, function (i, verificationLevel) {
+                    $.each(verificationLevel, function (j, verification) {
+                        table.append(
+                            $("<tr/>")
+                                .append($("<td/>").text(i))
+                                .append($("<td/>").text(verification.dcrn))
+                                .append($("<td/>").text(verification.header.current_ddss))
+                                .append($("<td/>").text(new Date(parseInt(verification.header.timestamp) * 1000).toString()))
+                        )
+                    })
+                })
+                
+                $("#modal .modal-body .container-fluid").html(table);
+            }
+            
+        }
     },
 
     getCustodians: async () => {        
@@ -344,6 +382,26 @@ var tools = {
     getAsset: async (objectId) => {        
         return $.ajax(
             "http://127.0.0.1:3030/assets/" + objectId,
+            {
+                type: "GET",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                }
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
+            })
+            
+    },
+
+    getObjectVerifications: async (objectId) => {        
+        return $.ajax(
+            "http://127.0.0.1:3030/verifications/" + objectId,
             {
                 type: "GET",            
                 dataType:"json",
