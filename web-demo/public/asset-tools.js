@@ -7,6 +7,11 @@ var state = {
     assets: null
 } 
 
+// Fancy utility function //
+const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 var tools = {
     setView: async (options) => {
 
@@ -42,8 +47,8 @@ var tools = {
                         $("<tr/>")
                             .append($("<td/>").text(item.type))
                             .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))
-                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
-                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
+                            .append($("<td/>").text(item.current_external_data != null ? item.current_external_data.data.name : "N/A"))
+                            .append($("<td/>").text(item.current_external_data != null ? item.current_external_data.data.description : "N/A"))
                             .append($("<td/>")
                                 .append(
                                     item.assets.length > 0 ? $("<button/>").addClass("btn btn-primary set-view").attr("rel", "custodian-assets").attr("data-id", item.id).html("View Assets <span class='badge badge-light'>" + item.assets.length + "</span>") : $("<span/>").text("N/A")
@@ -52,7 +57,24 @@ var tools = {
                     )
                 })
 
-                $("#current-view-content").html(table);
+                var addButton = $("<div/>").addClass("fixed-bottom").append(
+                        $("<button/>")
+                            .addClass("load-add-custodian-modal")
+                            .addClass("btn-lg")
+                            .addClass("btn-primary")
+                            .addClass("rounded-circle")                                    
+                            .addClass("float-right")    
+                            .addClass("mr-3")
+                            .addClass("mb-3")        
+                            .html("+")
+                )
+
+                var div = $("<div/>");
+
+                div.append(table);
+                div.append(addButton);
+
+                $("#current-view-content").html(div);
             }
             
         }
@@ -78,6 +100,8 @@ var tools = {
                                                 .append($("<th/>").text("Asset Group ID"))
                                                 .append($("<th/>").text("Asset Group Name"))
                                                 .append($("<th/>").text("Asset Group Description"))
+                                                .append($("<th/>").text("Issued Supply"))
+                                                .append($("<th/>").text("Max Supply"))
                                         )
                                 )
 
@@ -88,6 +112,8 @@ var tools = {
                             .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))  
                             .append($("<td/>").text(item.name))
                             .append($("<td/>").text(item.description))
+                            .append($("<td/>").text(item.issuedSupply))
+                            .append($("<td/>").text(item.maxSupply != null ? item.maxSupply : "Unlimited"))
                             
                     )
                 })
@@ -127,9 +153,9 @@ var tools = {
                     table.append(
                         $("<tr/>")                            
                             .append($("<td/>").html(item.id  + ' <a href="#" class="badge badge-success load-modal-view" rel="object-verifications" data-id="' + item.id +'">Verifications</a>'))                            
-                            .append($("<td/>").text(typeof item.current_external_data.id !== "undefined" ? item.current_external_data.id : "N/A"))
-                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.name : "N/A"))
-                            .append($("<td/>").text(typeof item.current_external_data.data !== "undefined" ? item.current_external_data.data.description : "N/A"))
+                            .append($("<td/>").text(item.current_external_data != null ? item.current_external_data.id : "N/A"))
+                            .append($("<td/>").text(item.current_external_data != null ? item.current_external_data.data.name : "N/A"))
+                            .append($("<td/>").text(item.current_external_data != null ? item.current_external_data.data.description : "N/A"))
                             .append($("<td/>")
                                 .append(
                                     $("<button/>").addClass("btn btn-primary load-modal-view").attr("rel", "asset-details").attr("data-id", item.id).html("View Details")
@@ -319,6 +345,26 @@ var tools = {
             
     },
 
+    createCustodian: async (custodianObj) => {
+        return $.ajax(
+            "http://127.0.0.1:3030/custodians/",
+            {
+                type: "POST",            
+                dataType:"json",
+                headers: {
+                    "Authorization": "Basic " + btoa(state.currentAuthenticatedCustodianId + ":mypassword")
+                },
+                data: custodianObj
+            }
+        )
+            .done(function (data) {
+                return data;                
+            })
+            .catch(function (error) {
+                console.error(error.responseJSON.message)
+            })
+    },
+
     getCustodianAssets: async (objectId) => {        
         return $.ajax(
             "http://127.0.0.1:3030/custodian/assets/" + objectId,
@@ -439,5 +485,50 @@ $().ready(() => {
             view: $(this).attr("rel"),
             id: $(this).attr("data-id") 
         })        
+    })
+
+    $(document).on("click", ".load-add-custodian-modal", function () {        
+        $("#modal-add-custodian").modal();    
+    })
+
+    $("#frm-add-custodian").submit(function (e) {
+        e.preventDefault();
+
+        $("#frm-add-custodian button").attr("disabled", "disabled").button('refresh');
+        $("#frm-add-custodian .spinner-grow").removeClass("invisible");
+
+        var custodianObj = {	
+            "custodian": {
+                "type": $("#newCustodianType").val(),
+                "external_data": {
+                    "id": $("#newCustodianExternalId").val() != "" ? $("#newCustodianExternalId").val() : null,
+                    "data": {
+                        "name": $("#newCustodianName").val() != "" ? $("#newCustodianName").val() : null,
+                        "description": $("#newCustodianDescription").val() != "" ? $("#newCustodianDescription").val() : null
+                    }
+                }
+            }
+        }
+
+        var requestTxn = tools.createCustodian(custodianObj)
+            .then(function (data) {
+                console.log(data);
+            })
+            .finally(function () {
+                // Sleep long enough for block to be written, then close modal and refresh the custodian view //
+                sleep(6000)
+                    .then(function () {                                                
+                        $("#modal-add-custodian").modal("hide");
+
+                        $("#frm-add-custodian").trigger("reset");
+
+                        $("#frm-add-custodian button").removeAttr("disabled").button('refresh');
+                        $("#frm-add-custodian .spinner-grow").addClass("invisible");
+
+                        tools.setView({view: "custodians"});
+                    })
+            });
+
+        
     })
 })
