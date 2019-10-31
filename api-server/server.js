@@ -181,9 +181,11 @@ const main = async() => {
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
 
-		const assets = await helper.getAssetGroups(client, {custodianId: authenticatedCustodian.id});
+		const assetGroups = await helper.getAssetGroups(client, {custodianId: authenticatedCustodian.id});
 
-		res.json(assets);
+		const assetGroupObjects = await Promise.all(assetGroups.map(async ag => {return await helper.getCurrentAssetGroupObject(client, {assetGroupId: ag.id})}));
+
+		res.json(assetGroupObjects);
 	}));	
 
 	// Get a specific asset group //
@@ -211,7 +213,8 @@ const main = async() => {
 
 		let asset_group = {			
 			name: req.body.asset_group.name,
-			description: req.body.asset_group.description
+			description: req.body.asset_group.description,
+			maxSupply: typeof req.body.asset_group.maxSupply !== "undefined" ? req.body.asset_group.maxSupply : null
 		};
 
 		const requestTxn = await helper.createAssetGroup(client, {asset_group: asset_group, authenticatedCustodian: authenticatedCustodian});

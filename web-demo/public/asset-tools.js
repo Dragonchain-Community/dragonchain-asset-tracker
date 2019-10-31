@@ -1,4 +1,4 @@
-var authorityCustodianId = "54d194ce-74b4-4554-85a4-d7ba5adb9cd7";
+var authorityCustodianId = "e2634eb5-b462-41f2-8d35-99f25f8cbbd0";
 
 var state = {
     currentAuthenticatedCustodianId: authorityCustodianId,
