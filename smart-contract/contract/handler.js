@@ -35,7 +35,7 @@ const helper = {
             const responseObj = JSON.parse(custodianObjectResponse.response);
             
             if (responseObj.error)
-                throw responseObj.error.details;
+                throw "Custodian Not Found: " + responseObj.error.details;
 
             return responseObj;
         } catch (exception)
@@ -51,7 +51,7 @@ const helper = {
             const responseObj = JSON.parse(assetGroupObjectResponse.response);
             
             if (responseObj.error)
-                throw responseObj.error.details;
+                throw "Asset Group Not Found: " + responseObj.error.details;
 
             return responseObj;
         } catch (exception)
@@ -67,7 +67,7 @@ const helper = {
             const responseObj = JSON.parse(assetObjectResponse.response);
             
             if (responseObj.error)
-                throw responseObj.error.details;
+                throw "Asset Not Found: " + responseObj.error.details;
 
             return responseObj;
         } catch (exception)
@@ -149,7 +149,7 @@ module.exports = async (input, callback) => {
             if (authenticatedCustodian.type != "authority")
                 throw "Only the authority custodian may create asset groups.";
 
-            if (typeof inAssetGroup.maxSupply !== "undefined" && inAssetGroup.maxSupply != null && !Number.isInteger(inAssetGroup.maxSupply))
+            if (typeof inAssetGroup.maxSupply !== "undefined" && inAssetGroup.maxSupply != null && !Number.isInteger(parseInt(inAssetGroup.maxSupply)))
                 throw "Asset group max supply must be null to indicate an unlimited supply or an integer.";
 
             let responseObj = {

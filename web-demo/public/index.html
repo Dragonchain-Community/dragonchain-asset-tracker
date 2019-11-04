@@ -76,7 +76,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Adding a Custodian</h5>
+                    <h5 class="modal-title">Add a Custodian</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -113,6 +113,197 @@
                                 </span>
                                       
                             </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-add-asset-group" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add an Asset Group</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                            <form id="frm-add-asset-group">
+                                <div class="form-group">
+                                    <label for="newAssetGroupName">Name</label>
+                                    <input type="text" class="form-control" id="newAssetGroupName">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="newAssetGroupDescription">Description</label>
+                                    <input type="text" class="form-control" id="newAssetGroupDescription">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="newAssetGroupMaxSupply">Max Supply</label>
+                                    <input type="text" class="form-control" id="newAssetGroupMaxSupply">
+                                    <small>Leave blank for unlimited supply.</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                                
+                                <span class="spinner-grow text-primary invisible" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </span>
+                                      
+                            </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-add-asset" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add an Asset</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">       
+                        <p><em>Note: this form is customized for a physical product asset.</em></p>                     
+                        <form id="frm-add-asset">
+                            <div class="form-group">
+                                <label for="newAssetAssetGroup">Asset Group</label>
+                                <select id="newAssetAssetGroup" class="form-control"></select>                                
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetExternalId">External ID</label>
+                                <input type="text" class="form-control" id="newAssetExternalId">
+                                <small>Optional</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetName">Name</label>
+                                <input type="text" class="form-control" id="newAssetName">
+                                <small>Optional</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetDescription">Description</label>
+                                <input type="text" class="form-control" id="newAssetDescription">
+                                <small>Optional</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetColor">Color</label>
+                                <input type="text" class="form-control" id="newAssetColor">
+                                <small>Optional</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetImageURL">Image URL</label>
+                                <input type="text" class="form-control" id="newAssetImageURL">
+                                <small>Optional</small>
+                            </div>                            
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            
+                            <span class="spinner-grow text-primary invisible" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </span>
+                                    
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-authorize-asset-transfer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Authorize Asset Transfer</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">       
+                        <p><em>Note: there would need to be better authentication of current asset owner in a production system than is demonstrated here.</em></p>                     
+                        <form id="frm-authorize-asset-transfer">
+
+                            <div class="form-group">
+                                <label for="newTransferAuthorizationAssetId">Asset ID:</label>
+                                <p id="newTransferAuthorizationAssetIdDisplay"></p>
+                                <input type="hidden" id="newTransferAuthorizationAssetId">                                    
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newTransferAuthorizationFromCustodianId">Current Custodian ID:</label>
+                                <p id="newTransferAuthorizationFromCustodianIdDisplay"></p>                                                                 
+                                <input type="hidden" id="newTransferAuthorizationFromCustodianId">   
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newTransferAuthorizationToCustodianId">Authorized Receiving Custodian</label>
+                                <select id="newTransferAuthorizationToCustodianId" class="form-control"></select>                                
+                                <small>Optional. If not specified, any custodian may claim this asset</small>
+                            </div>       
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            
+                            <span class="spinner-grow text-primary invisible" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </span>
+                                    
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-accept-asset-transfer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Accept Asset Transfer</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">       
+                        <p><em>Note: there would need to be better authentication of current asset owner in a production system than is demonstrated here.</em></p>                     
+                        <form id="frm-accept-asset-transfer">
+
+                            <div class="form-group">
+                                <label for="newAssetTransferAssetId">Asset ID:</label>
+                                <p id="newAssetTransferAssetIdDisplay"></p>
+                                <input type="hidden" id="newAssetTransferAssetId">                                    
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetTransferFromCustodianId">Current Custodian ID:</label>
+                                <p id="newAssetTransferFromCustodianIdDisplay"></p>                                                                 
+                                <input type="hidden" id="newAssetTransferFromCustodianId">   
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newAssetTransferToCustodianId">Receiving Custodian</label>
+                                <select id="newAssetTransferToCustodianId" class="form-control"></select>
+                            </div>       
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            
+                            <span class="spinner-grow text-primary invisible" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </span>
+                                    
+                        </form>
                     </div>
                 </div>
             </div>

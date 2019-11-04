@@ -214,7 +214,7 @@ const main = async() => {
 		let asset_group = {			
 			name: req.body.asset_group.name,
 			description: req.body.asset_group.description,
-			maxSupply: typeof req.body.asset_group.maxSupply !== "undefined" ? req.body.asset_group.maxSupply : null
+			maxSupply: typeof req.body.asset_group.maxSupply !== "undefined" ? parseInt(req.body.asset_group.maxSupply) : null
 		};
 
 		const requestTxn = await helper.createAssetGroup(client, {asset_group: asset_group, authenticatedCustodian: authenticatedCustodian});
@@ -269,6 +269,21 @@ const main = async() => {
 		res.json(asset);
 	}));
 
+	// Get an asset's full transaction history //
+	app.get('/assets/history/:assetId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
+
+		// Could also make this optional for the current custodian "up to his/her custodianship," etc. //
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const assetHistory = await helper.getAssetTransactions(client, {assetId: req.params.assetId});
+
+		res.json(assetHistory);
+	}));
+
 	// Create a new asset //
 	app.post('/assets', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
@@ -278,8 +293,17 @@ const main = async() => {
 		if (authenticatedCustodian.type != "authority")
 			throw "Only the authority custodian may do that.";
 
+		if (typeof req.body.asset.assetGroupId === "undefined" || req.body.asset.assetGroupId == "")
+			throw "Asset group must be specified.";
+
+		const assetGroupObject = await helper.getCurrentAssetGroupObject(client, {assetGroupId: req.body.asset.assetGroupId});
+
+		// Ensure we aren't violating max supply //
+		if (assetGroupObject.issuedSupply + 1 > assetGroupObject.maxSupply)
+			throw "Max supply has been reached for the selected asset group.";
+
 		let asset = {			
-			assetGroupId: typeof req.body.asset.assetGroupId !== "undefined" ? req.body.asset.assetGroupId : null
+			assetGroupId: assetGroupObject.id
 		};
 
 		if (req.body.asset.external_data)
@@ -355,13 +379,13 @@ const main = async() => {
 	}));
 	
 
-	// Get a specific asset //
+	// Get an object's Dragon Net verifications //
 	app.get('/verifications/:objectId', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
 
 		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
-		const verifications = await helper.getBlockVerificationsForTxnId(client, {objectId: req.params.objectId});
+		const verifications = await helper.getBlockVerificationsForTxnId(client, {objectId: req.params.objectId, authenticatedCustodian: authenticatedCustodian});
 
 		res.json(verifications);
 	}));
