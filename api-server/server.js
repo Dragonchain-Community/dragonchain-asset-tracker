@@ -172,6 +172,49 @@ const main = async() => {
 		res.json(requestTxn);
 	}));
 
+	// Add to an asset's external data as another custodian //
+	// Note: a special method that will prevent overwriting key external data but allow customization //
+	// of external data by handlers and owners //
+	// Keys that can't be added in this manner by contract: external ID, name, description //
+	app.post('/custodian/assets/add-data', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
+
+		const asset = await helper.getCurrentAssetObject(client, {assetId: req.body.asset_external_data.assetId});
+
+		if (authenticatedCustodian.id != asset.last_transfer.toCustodianId)
+			throw "Only the current custodian of the asset may do that.";
+
+		// Get rid of request data that the user is NOT allowed to change		
+		delete req.body.asset_external_data.external_data.data.name;
+		delete req.body.asset_external_data.external_data.data.description;
+
+		// Remove keys that already exist on original object //
+		const keys = Object.keys(req.body.asset_external_data.external_data.data);
+		for (let i=0; i<keys.length; i++)
+		{
+			if (typeof asset.current_external_data.data[keys[i]] !== "undefined")
+				delete req.body.asset_external_data.external_data.data[keys[i]];
+		}
+
+		// If there are no valid keys to be added, throw an error (and save a transaction fee) //
+		if (!Object.keys(req.body.asset_external_data.external_data.data).length > 0)
+			throw "No valid data to be added to asset.";
+
+		// Start with the current asset's external data //
+		let asset_external_data = {		
+			"assetId": asset.id,
+			"external_data": {
+				"data": req.body.asset_external_data.external_data.data
+			}
+		};
+
+		const requestTxn = await helper.addAssetExternalDataAsCustodian(client, {asset_external_data: asset_external_data, authenticatedCustodian: authenticatedCustodian});
+
+		res.json(asset_external_data);
+	}));
+
 	// Get all asset groups //
 	app.get('/asset-groups', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
@@ -237,6 +280,35 @@ const main = async() => {
 		const assetObjects = await Promise.all(assets.map(async a => {return await helper.getCurrentAssetObject(client, {assetId: a.id})}));
 
 		res.json(assetObjects);
+	}));	
+
+	// Get simplified asset data //
+	app.get('/assets/simple', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
+
+		if (authenticatedCustodian.type != "authority")
+			throw "Only the authority custodian may do that.";
+
+		const assets = await helper.getAssets(client, {custodianId: authenticatedCustodian.id});
+
+		const assetObjects = await Promise.all(assets.map(async a => {return await helper.getCurrentAssetObject(client, {assetId: a.id})}));
+
+		let assetsSimple = [];
+
+		for (let i = 0; i < assetObjects.length; i++)
+		{
+			assetsSimple.push({
+				"assetId": assetObjects[i].id,
+				"name": typeof assetObjects[i].current_external_data.data.name !== "undefined" ? assetObjects[i].current_external_data.data.name : "N/A",
+				"description": typeof assetObjects[i].current_external_data.data.description !== "undefined" ? assetObjects[i].current_external_data.data.description : "N/A",
+				"imageURL": typeof assetObjects[i].current_external_data.data.image_url !== "undefined" ? assetObjects[i].current_external_data.data.image_url : null,
+				"nfcTagId": typeof assetObjects[i].current_external_data.data.nfcTagId !== "undefined" ? assetObjects[i].current_external_data.data.nfcTagId : null
+			})
+		}
+
+		res.json(assetsSimple);
 	}));	
 
 	// Get a specific asset //
@@ -335,7 +407,6 @@ const main = async() => {
 		res.json(requestTxn);
 	}));
 
-
 	// Authorize an asset for transfer //
 	app.post('/assets/authorize-transfer', awaitHandlerFactory(async (req, res) => {
 		const client = await dcsdk.createClient();
@@ -398,7 +469,7 @@ const main = async() => {
 	});
 
 	// In production (optionally) use port 80 or, if SSL available, use port 443 //
-	const server = app.listen(3030, '127.0.0.1', () => {
+	const server = app.listen(3030, () => {
 		console.log(`Express running → PORT ${server.address().port}`);
 	});
 }

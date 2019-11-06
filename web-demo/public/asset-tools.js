@@ -487,7 +487,7 @@ var tools = {
 
     getFromAPI: async (path) => {        
         return $.ajax(
-            "http://127.0.0.1:3030/" + path,
+            "http://localhost:3030/" + path,
             {
                 type: "GET",            
                 dataType:"json",
@@ -515,7 +515,7 @@ var tools = {
 
 
         return $.ajax(
-            "http://127.0.0.1:3030/" + path,
+            "http://localhost:3030/" + path,
             {
                 type: "POST",            
                 dataType:"json",

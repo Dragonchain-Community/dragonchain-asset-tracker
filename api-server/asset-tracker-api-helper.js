@@ -346,6 +346,32 @@ const helper = {
         }
     },
 
+    addAssetExternalDataAsCustodian: async (client, options) => {
+        try {
+            let payload = {
+                "method":"add_asset_external_data_as_custodian", 
+                "parameters":{                    
+                    "asset_external_data": options.asset_external_data
+                }, 
+                "authentication":{
+                    "custodianId":options.authenticatedCustodian.id
+                }
+            };
+
+            const requestTxn = await client.createTransaction({
+                transactionType: config.contractTxnType,
+                payload: payload
+            })
+
+            return requestTxn;
+
+        } catch (exception)
+        {
+            // Pass back to caller to handle gracefully //
+            throw exception;
+        }
+    },
+
     authorizeAssetTransfer: async (client, options) => {
         try {
             let payload = {

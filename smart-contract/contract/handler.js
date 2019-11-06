@@ -295,9 +295,9 @@ module.exports = async (input, callback) => {
 
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
-            // Only the owner of the asset may adjust its external data //
-            if (authenticatedCustodian.id != asset.custodianId)
-                throw "Only an asset's creator may set its external data.";
+            // Only the creator may adjust its external data //
+            if (authenticatedCustodian.id != asset.custodianId )
+                throw "Only an asset's creator may set its external data with this method.";
 
             let responseObj = {
                 "type":"asset_external_data",
@@ -309,6 +309,56 @@ module.exports = async (input, callback) => {
             };
 
             asset.current_external_data = responseObj.asset_external_data.external_data;
+
+            const assetKey = `asset-${asset.id}`;
+
+            callback(undefined, 
+                {
+                    "response": responseObj,
+                    [assetKey]: asset
+                }
+            );      
+
+        } else if (inputObj.payload.method == "add_asset_external_data_as_custodian")
+        {
+            // Note: This is a special add-only method to allow the current custodian of an object to add an external data 
+            // key/value pair if the key doesn't already exist. //
+            const inAssetExternalData = inputObj.payload.parameters.asset_external_data;
+
+            let asset = await helper.getCurrentAssetObject(client, {assetId: inAssetExternalData.assetId});
+
+            const inAuthentication = inputObj.payload.authentication;
+
+            const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
+
+            // Only the current custodian of the asset may adjust its external data //
+            if (authenticatedCustodian.id != asset.custodianId )
+                throw "Only an asset's current custodian may set its external data with this method.";
+
+            let responseObj = {
+                "type":"add_asset_external_data",
+                "asset_external_data": {
+                    "id": inputObj.header.txn_id,
+                    "assetId": asset.id,
+                    "external_data": inAssetExternalData.external_data
+                }
+            };
+
+            // Initialize if necessary //
+            if (typeof asset.current_external_data.data === "undefined")
+                asset.current_external_data.data = {};
+
+            // Get rid of request data that the user is NOT allowed to change		
+            delete inAssetExternalData.external_data.data.name;
+            delete inAssetExternalData.external_data.data.description;
+
+            // Add keys that remain on the original object //
+            const keys = Object.keys(inAssetExternalData.external_data.data);
+            for (let i=0; i<keys.length; i++)
+            {
+                if (typeof asset.current_external_data.data[keys[i]] === "undefined")
+                    asset.current_external_data.data[keys[i]] = inAssetExternalData.external_data.data[keys[i]];
+            }
 
             const assetKey = `asset-${asset.id}`;
 
