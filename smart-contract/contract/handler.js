@@ -332,7 +332,7 @@ module.exports = async (input, callback) => {
             const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: inAuthentication.custodianId});
 
             // Only the current custodian of the asset may adjust its external data //
-            if (authenticatedCustodian.id != asset.custodianId )
+            if (authenticatedCustodian.id != asset.last_transfer.toCustodianId )
                 throw "Only an asset's current custodian may set its external data with this method.";
 
             let responseObj = {

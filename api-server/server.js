@@ -212,7 +212,7 @@ const main = async() => {
 
 		const requestTxn = await helper.addAssetExternalDataAsCustodian(client, {asset_external_data: asset_external_data, authenticatedCustodian: authenticatedCustodian});
 
-		res.json(asset_external_data);
+		res.json(requestTxn);
 	}));
 
 	// Get all asset groups //
