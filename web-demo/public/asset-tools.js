@@ -1,4 +1,4 @@
-var authorityCustodianId = "e2634eb5-b462-41f2-8d35-99f25f8cbbd0";
+var authorityCustodianId = "2a3203c1-5be2-4370-8661-1a4265f8d16c";
 
 var state = {
     currentAuthenticatedCustodianId: authorityCustodianId,
@@ -357,6 +357,11 @@ var tools = {
                 div.append(
                     $("<div/>")
                         .addClass("col-9")
+                        .append(
+                            $("<div/>")
+                                .addClass("float-right m-2")
+                                .qrcode({width: 128, height: 128, text: asset.id})
+                        )
                         .append($("<pre/>").html(JSON.stringify(asset, null, 2)))
                 )
 
@@ -388,6 +393,9 @@ var tools = {
 
                 if (responseTypes.includes("asset_external_data"))
                     actions.push("Asset External Data Changed");
+
+                if (responseTypes.includes("add_asset_external_data"))
+                    actions.push("Asset External Data Added by Custodian");
 
                 if (responseTypes.includes("asset_transfer_authorization"))
                     actions.push("Asset Transfer Authorized");

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:flutter_nfc_reader/flutter_nfc_reader.dart';
 
 void main() => runApp(MyApp());
@@ -19,6 +20,135 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class AssetDetailScreen extends StatelessWidget {
+
+  final AssetInfo asset;
+
+  AssetDetailScreen({Key key, @required this.asset}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(asset.assetId),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            new Text(
+                "Asset:",
+                style: TextStyle(fontWeight: FontWeight.bold)
+            ),
+            new Text(asset.name),
+            Padding(padding: EdgeInsets.only(top: 20.0)),
+            Image.network(asset.imageURL),
+            Padding(padding: EdgeInsets.only(top: 20.0)),
+            new Text(
+                "Description:",
+                style: TextStyle(fontWeight: FontWeight.bold)
+            ),
+            new Text(asset.description),
+            Padding(padding: EdgeInsets.only(top: 20.0)),
+            new Text(
+                "Supply Record:",
+                style: TextStyle(fontWeight: FontWeight.bold)
+            ),
+            new Text(asset.supplyInfo),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AssociateAssetScreen extends StatelessWidget {
+
+  final String postAssetDataURL = "http://192.168.1.2:3030/custodian/assets/add-data";
+
+  final String authenticatedCustodianId;
+  final String nfcTagId;
+
+  final _selectedAssetController = TextEditingController();
+
+  AssociateAssetScreen({Key key, @required this.authenticatedCustodianId, @required this.nfcTagId}) : super(key: key);
+
+  Future _scanQRCode() async {
+    _selectedAssetController.text = await scanner.scan();
+  }
+
+  Future _postAssetData() async {
+    String username = authenticatedCustodianId;
+    String password = 'mypassword';
+    String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
+
+    var res = await http.post(
+        Uri.encodeFull(postAssetDataURL),
+        headers: {"content-type": "application/json", "authorization": basicAuth},
+        body: jsonEncode({
+          "asset_external_data": {
+            "assetId": _selectedAssetController.text,
+            "external_data": {
+              "data": {
+                "nfcTagId": nfcTagId
+              }
+            }
+          }
+        })
+    );
+
+    var data = json.decode(res.body);
+
+    print(data);
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Use the Todo to create the UI.
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Associate an Asset"),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            new Text(
+                "Enter or Scan Your Asset ID:",
+                style: TextStyle(fontWeight: FontWeight.bold)
+            ),
+            new TextFormField(
+              controller: _selectedAssetController,
+            ),
+            FlatButton(
+              child: Text('Scan QR Code'),
+              onPressed: _scanQRCode,
+            ),
+            Padding(padding: EdgeInsets.only(top: 20.0)),
+            RaisedButton(
+              child: Text('Submit'),
+              onPressed: () {
+                _postAssetData()
+                  .then((data) {
+                    Navigator.pop(context);
+                  })
+                  .catchError((e) {
+                    print(e);
+                  });
+                }
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class AssetTrackerNFCPage extends StatefulWidget {
   AssetTrackerNFCPage({Key key, this.title}) : super(key: key);
 
@@ -30,20 +160,22 @@ class AssetTrackerNFCPage extends StatefulWidget {
 
 class _AssetTrackerNFCPageState extends State<AssetTrackerNFCPage> {
 
-  final String getAssetsURL = "http://192.168.1.2:3030/assets/simple";
-  final String postAssetData = "http://192.168.1.2:3030/assets/data";
+  final String getNfcTagDataURL = "http://192.168.1.2:3030/nfc/check-tag";
+
+
+  final String authenticatedCustodianId = "5c83e1cb-e1d0-4081-93b5-fdda8b71d1d8";
 
   List availableAssets = List();
 
-  String _selectedValue;
+  String _selectedNfcTagId;
 
-  Future getAssets() async {
-    String username = 'e2634eb5-b462-41f2-8d35-99f25f8cbbd0';
+  Future<AssetInfo> getNfcTagData() async {
+    String username = authenticatedCustodianId;
     String password = 'mypassword';
     String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
 
     var res = await http.get(
-        Uri.encodeFull(getAssetsURL),
+        Uri.encodeFull(getNfcTagDataURL + "/" + _selectedNfcTagId),
         headers: {"Accept": "application/json", "authorization": basicAuth}
     );
 
@@ -51,16 +183,36 @@ class _AssetTrackerNFCPageState extends State<AssetTrackerNFCPage> {
 
     print(data);
 
-    setState(() {
-      availableAssets = (data as List).map((i) => new AssetInfo.fromJson(i)).where((i) => i.nfcTagId == null).toList();
-    });
+    if (data == null)
+      return null;
+    else
+      return new AssetInfo.fromJson(data);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    this.getAssets();
+
+  void _showAssetNotOwnedDialog() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Asset Not Owned"),
+          content: new Text("The NFC tag scanned is associated to an asset you do not own."),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,44 +224,40 @@ class _AssetTrackerNFCPageState extends State<AssetTrackerNFCPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            new DropdownButton(
-              isExpanded: true,
-              onChanged: (newVal) {
-                setState(() {
-                  _selectedValue = newVal;
-                  print (_selectedValue);
-                });
-              },
-              value: _selectedValue,
-              items: availableAssets.map((item) =>
-                new DropdownMenuItem(
-                  child: Text(item.assetId + ' - ' + item.name),
-                  value: item.assetId
-                )
-              ).toList(),
-            ),
-            RaisedButton(
-              child: Text('Write NFC Tag'),
-              onPressed: () {
-                FlutterNfcReader.write(" ", _selectedValue).then((value) {
-                  print(value.content);
-
-                  // API call to set the external data in Dragonchain //
-
-                });
-              }
-            ),
-            Padding(padding: EdgeInsets.only(top: 40.0)),
             RaisedButton(
               child: Text('Read NFC Tag'),
               onPressed: () {
                 FlutterNfcReader.read().then((value) {
                   print(value.id);
 
-                  String clean = value.content.replaceAll(RegExp(r'[^A-Za-z0-9-]'),"");
-                  print(clean);
+                  _selectedNfcTagId = value.id;
 
-                  // Display image, name, etc. in closable widget //
+                  getNfcTagData().then((asset) {
+                    if (asset == null) // nfcTagId is not associated at all, offer to associate
+                    {
+                      // Offer to associate //
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssociateAssetScreen(authenticatedCustodianId: authenticatedCustodianId, nfcTagId: _selectedNfcTagId,),
+                        ),
+                      );
+                    } else if (asset.currentCustodianId == authenticatedCustodianId) // Asset belongs to current custodian and is associated //
+                    {
+                      // Display the asset's info //
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssetDetailScreen(asset: asset,),
+                        ),
+                      );
+
+                    } else // nfcTagId is associated with someone else's asset
+                    {
+                      // Show error dialog //
+                      _showAssetNotOwnedDialog();
+                    }
+                  });
                 });
               },
             ),
@@ -122,17 +270,21 @@ class _AssetTrackerNFCPageState extends State<AssetTrackerNFCPage> {
 
 class AssetInfo {
   String assetId;
+  String currentCustodianId;
   String name;
   String description;
   String imageURL;
+  String supplyInfo;
   String nfcTagId;
 
 
   AssetInfo.fromJson(Map json) {
     this.assetId = json['assetId'];
+    this.currentCustodianId = json['currentCustodianId'];
     this.name = json['name'];
     this.description = json['description'];
     this.imageURL = json['imageURL'];
+    this.supplyInfo = json['supplyInfo'];
     this.nfcTagId = json['nfcTagId'];
   }
 }

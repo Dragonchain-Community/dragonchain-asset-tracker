@@ -90,8 +90,8 @@ const main = async() => {
 
 		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
 
-		if (authenticatedCustodian.type != "authority")
-			throw "Only the authority custodian may do that.";
+		if (authenticatedCustodian.type != "authority" && authenticatedCustodian.id != custodianId)
+			throw "Only the authority or the custodian may do that.";
 
 		const custodian = await helper.getCurrentCustodianObject(client, {custodianId: req.params.custodianId});
 
@@ -299,16 +299,45 @@ const main = async() => {
 
 		for (let i = 0; i < assetObjects.length; i++)
 		{
+			let supplyInfo = "#" + assetObjects[i].assetGroupSupplyRecord.number + (assetObjects[i].assetGroupSupplyRecord.of != null ? " of " + assetObjects[i].assetGroupSupplyRecord.of : "");
 			assetsSimple.push({
 				"assetId": assetObjects[i].id,
+				"currentCustodianId": assetObj.last_transfer.toCustodianId,
 				"name": typeof assetObjects[i].current_external_data.data.name !== "undefined" ? assetObjects[i].current_external_data.data.name : "N/A",
 				"description": typeof assetObjects[i].current_external_data.data.description !== "undefined" ? assetObjects[i].current_external_data.data.description : "N/A",
 				"imageURL": typeof assetObjects[i].current_external_data.data.image_url !== "undefined" ? assetObjects[i].current_external_data.data.image_url : null,
+				"supplyInfo": supplyInfo,
 				"nfcTagId": typeof assetObjects[i].current_external_data.data.nfcTagId !== "undefined" ? assetObjects[i].current_external_data.data.nfcTagId : null
 			})
 		}
 
 		res.json(assetsSimple);
+	}));	
+
+	// Get simplified asset data //
+	app.get('/assets/simple/:assetId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
+
+		// Any custodian may request simple asset data on a single known asset ID //
+
+		const assetObj = await helper.getCurrentAssetObject(client, {assetId: assetId});
+
+		let supplyInfo = "#" + assetObject.assetGroupSupplyRecord.number + (assetObject.assetGroupSupplyRecord.of != null ? " of " + assetObject.assetGroupSupplyRecord.of : "");
+			
+		// Note: only display nfcTagId if authenticated custodian is asset's current custodian //		
+		let assetSimple = {
+			"assetId": assetObj.id,
+			"currentCustodianId": assetObj.last_transfer.toCustodianId,
+			"name": typeof assetObj.current_external_data.data.name !== "undefined" ? assetObj.current_external_data.data.name : "N/A",
+			"description": typeof assetObj.current_external_data.data.description !== "undefined" ? assetObj.current_external_data.data.description : "N/A",
+			"imageURL": typeof assetObj.current_external_data.data.image_url !== "undefined" ? assetObj.current_external_data.data.image_url : null,
+			"supplyInfo": supplyInfo,
+			"nfcTagId": (authenticatedCustodian.id == asset.last_transfer.toCustodianId && typeof assetObj.current_external_data.data.nfcTagId !== "undefined") ? assetObj.current_external_data.data.nfcTagId : null
+		};
+
+		res.json(assetSimple);
 	}));	
 
 	// Get a specific asset //
@@ -448,6 +477,41 @@ const main = async() => {
 
 		res.json(requestTxn);
 	}));
+
+
+	// Check all assets for association with specified NFC Tag ID //
+	app.get('/nfc/check-tag/:nfcTagId', awaitHandlerFactory(async (req, res) => {
+		const client = await dcsdk.createClient();
+
+		const authenticatedCustodian = await helper.getCurrentCustodianObject(client, {custodianId: req.authenticatedCustodianId});
+
+		const assets = await helper.getAssets(client, {custodianId: authenticatedCustodian.id});
+
+		const assetObjects = await Promise.all(assets.map(async a => {return await helper.getCurrentAssetObject(client, {assetId: a.id})}));
+
+		let associatedAssetObject = null;
+		for (let i = 0; i< assetObjects.length; i++)
+		{
+			if (typeof assetObjects[i].current_external_data.data.nfcTagId !== "undefined")
+			{
+				let supplyInfo = "#" + assetObjects[i].assetGroupSupplyRecord.number + (assetObjects[i].assetGroupSupplyRecord.of != null ? " of " + assetObjects[i].assetGroupSupplyRecord.of : "");
+				if (assetObjects[i].current_external_data.data.nfcTagId == req.params.nfcTagId)
+					associatedAssetObject = {
+						"assetId": assetObjects[i].id,
+						"currentCustodianId": assetObjects[i].last_transfer.toCustodianId,
+						"name": typeof assetObjects[i].current_external_data.data.name !== "undefined" ? assetObjects[i].current_external_data.data.name : "N/A",
+						"description": typeof assetObjects[i].current_external_data.data.description !== "undefined" ? assetObjects[i].current_external_data.data.description : "N/A",
+						"imageURL": typeof assetObjects[i].current_external_data.data.image_url !== "undefined" ? assetObjects[i].current_external_data.data.image_url : null,
+						"supplyInfo": supplyInfo,
+						"nfcTagId": req.params.nfcTagId
+					};
+			}
+		}
+
+		const nfcTagResult = associatedAssetObject;
+
+		res.json(nfcTagResult);
+	}));	
 	
 
 	// Get an object's Dragon Net verifications //
