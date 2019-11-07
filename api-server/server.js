@@ -300,6 +300,7 @@ const main = async() => {
 		for (let i = 0; i < assetObjects.length; i++)
 		{
 			let supplyInfo = "#" + assetObjects[i].assetGroupSupplyRecord.number + (assetObjects[i].assetGroupSupplyRecord.of != null ? " of " + assetObjects[i].assetGroupSupplyRecord.of : "");
+
 			assetsSimple.push({
 				"assetId": assetObjects[i].id,
 				"currentCustodianId": assetObj.last_transfer.toCustodianId,
@@ -307,6 +308,8 @@ const main = async() => {
 				"description": typeof assetObjects[i].current_external_data.data.description !== "undefined" ? assetObjects[i].current_external_data.data.description : "N/A",
 				"imageURL": typeof assetObjects[i].current_external_data.data.image_url !== "undefined" ? assetObjects[i].current_external_data.data.image_url : null,
 				"supplyInfo": supplyInfo,
+				"transferAuthorized": assetObjects[i].current_transfer_authorization != null ? true : false,
+				"transferAuthorizedTo": assetObjects[i].current_transfer_authorization != null ? assetObjects[i].current_transfer_authorization.toCustodianId : null,
 				"nfcTagId": typeof assetObjects[i].current_external_data.data.nfcTagId !== "undefined" ? assetObjects[i].current_external_data.data.nfcTagId : null
 			})
 		}
@@ -322,9 +325,9 @@ const main = async() => {
 
 		// Any custodian may request simple asset data on a single known asset ID //
 
-		const assetObj = await helper.getCurrentAssetObject(client, {assetId: assetId});
+		const assetObj = await helper.getCurrentAssetObject(client, {assetId: req.params.assetId});
 
-		let supplyInfo = "#" + assetObject.assetGroupSupplyRecord.number + (assetObject.assetGroupSupplyRecord.of != null ? " of " + assetObject.assetGroupSupplyRecord.of : "");
+		let supplyInfo = "#" + assetObj.assetGroupSupplyRecord.number + (assetObj.assetGroupSupplyRecord.of != null ? " of " + assetObj.assetGroupSupplyRecord.of : "");
 			
 		// Note: only display nfcTagId if authenticated custodian is asset's current custodian //		
 		let assetSimple = {
@@ -334,7 +337,9 @@ const main = async() => {
 			"description": typeof assetObj.current_external_data.data.description !== "undefined" ? assetObj.current_external_data.data.description : "N/A",
 			"imageURL": typeof assetObj.current_external_data.data.image_url !== "undefined" ? assetObj.current_external_data.data.image_url : null,
 			"supplyInfo": supplyInfo,
-			"nfcTagId": (authenticatedCustodian.id == asset.last_transfer.toCustodianId && typeof assetObj.current_external_data.data.nfcTagId !== "undefined") ? assetObj.current_external_data.data.nfcTagId : null
+			"transferAuthorized": assetObj.current_transfer_authorization != null ? true : false,
+			"transferAuthorizedTo": assetObj.current_transfer_authorization != null ? assetObj.current_transfer_authorization.toCustodianId : null,
+			"nfcTagId": (authenticatedCustodian.id == assetObj.last_transfer.toCustodianId && typeof assetObj.current_external_data.data.nfcTagId !== "undefined") ? assetObj.current_external_data.data.nfcTagId : null
 		};
 
 		res.json(assetSimple);
@@ -503,6 +508,8 @@ const main = async() => {
 						"description": typeof assetObjects[i].current_external_data.data.description !== "undefined" ? assetObjects[i].current_external_data.data.description : "N/A",
 						"imageURL": typeof assetObjects[i].current_external_data.data.image_url !== "undefined" ? assetObjects[i].current_external_data.data.image_url : null,
 						"supplyInfo": supplyInfo,
+						"transferAuthorized": assetObjects[i].current_transfer_authorization != null ? true : false,
+						"transferAuthorizedTo": assetObjects[i].current_transfer_authorization != null ? assetObjects[i].current_transfer_authorization.toCustodianId : null,
 						"nfcTagId": req.params.nfcTagId
 					};
 			}

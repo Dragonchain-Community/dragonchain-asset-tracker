@@ -66,7 +66,7 @@ class AssetDetailScreen extends StatelessWidget {
 
 class AssociateAssetScreen extends StatelessWidget {
 
-  final String postAssetDataURL = "http://192.168.1.2:3030/custodian/assets/add-data";
+  final String baseURL = "http://192.168.1.2:3030";
 
   final String authenticatedCustodianId;
   final String nfcTagId;
@@ -79,13 +79,89 @@ class AssociateAssetScreen extends StatelessWidget {
     _selectedAssetController.text = await scanner.scan();
   }
 
+  Future<AssetInfo> _getAsset(String assetId) async {
+    String username = authenticatedCustodianId;
+    String password = 'mypassword';
+    String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
+
+    var res = await http.get(
+        Uri.encodeFull(baseURL + "/assets/simple/" + assetId),
+        headers: {"Accept": "application/json", "authorization": basicAuth}
+    );
+
+    var data = json.decode(res.body);
+
+    print(data);
+
+    if (data == null)
+      throw("Asset not found.");
+
+    return new AssetInfo.fromJson(data);
+  }
+
+  Future<bool> _checkAssetOwnedOrClaim() async {
+
+    AssetInfo asset = await _getAsset(_selectedAssetController.text);
+
+    if (asset.currentCustodianId == authenticatedCustodianId) {
+      print("Asset is owned.");
+      return true;
+    }
+
+    if (asset.transferAuthorized)
+    {
+      if (asset.transferAuthorizedTo == authenticatedCustodianId || asset.transferAuthorizedTo == null)
+      {
+        // Attempt to claim the asset //
+        await _postAcceptAssetTransfer();
+
+        // Get the asset and check for new custodian status //
+        asset = await _getAsset(_selectedAssetController.text);
+
+        if (asset.currentCustodianId == authenticatedCustodianId) {
+          print("Asset claimed!");
+          return true;
+        } else {
+          print("Asset could not be claimed.");
+          return false;
+        }
+      } else {
+        print("Asset may not be claimed.");
+        return false;
+      }
+    }
+
+    print("Asset not in custody and not authorized for transfer.");
+    return false;
+
+  }
+
+  Future _postAcceptAssetTransfer() async {
+    String username = authenticatedCustodianId;
+    String password = 'mypassword';
+    String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
+
+    var res = await http.post(
+        Uri.encodeFull(baseURL + "/assets/transfer/"),
+        headers: {"content-type": "application/json", "authorization": basicAuth},
+        body: jsonEncode({
+          "asset_transfer": {
+            "assetId": _selectedAssetController.text
+          }
+        })
+    );
+
+    print("Posted accept asset transfer");
+
+  }
+
   Future _postAssetData() async {
     String username = authenticatedCustodianId;
     String password = 'mypassword';
     String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
 
     var res = await http.post(
-        Uri.encodeFull(postAssetDataURL),
+        Uri.encodeFull(baseURL + "/custodian/assets/add-data"),
         headers: {"content-type": "application/json", "authorization": basicAuth},
         body: jsonEncode({
           "asset_external_data": {
@@ -99,15 +175,12 @@ class AssociateAssetScreen extends StatelessWidget {
         })
     );
 
-    var data = json.decode(res.body);
-
-    print(data);
+    print("Posted asset data");
 
   }
 
   @override
   Widget build(BuildContext context) {
-    // Use the Todo to create the UI.
     return Scaffold(
       appBar: AppBar(
         title: Text("Associate an Asset"),
@@ -133,14 +206,41 @@ class AssociateAssetScreen extends StatelessWidget {
             RaisedButton(
               child: Text('Submit'),
               onPressed: () {
-                _postAssetData()
-                  .then((data) {
-                    Navigator.pop(context);
-                  })
-                  .catchError((e) {
-                    print(e);
-                  });
-                }
+                _checkAssetOwnedOrClaim()
+                    .then((isOwned) {
+                      if (isOwned) {
+                        _postAssetData()
+                            .then((data) {
+                              Navigator.pop(context);
+                            });
+                      } else {
+                        throw("Asset could not be claimed.");
+                      }
+                    })
+                    .catchError((e) {
+                      print(e);
+
+                      return showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          // return object of type Dialog
+                          return AlertDialog(
+                            title: new Text("Asset Not Associated"),
+                            content: new Text("The NFC tag scanned could not be associated with the specified asset."),
+                            actions: <Widget>[
+                              // usually buttons at the bottom of the dialog
+                              new FlatButton(
+                                child: new Text("Close"),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    });
+              }
             ),
           ],
         ),
@@ -160,8 +260,7 @@ class AssetTrackerNFCPage extends StatefulWidget {
 
 class _AssetTrackerNFCPageState extends State<AssetTrackerNFCPage> {
 
-  final String getNfcTagDataURL = "http://192.168.1.2:3030/nfc/check-tag";
-
+  final String baseURL = "http://192.168.1.2:3030";
 
   final String authenticatedCustodianId = "5c83e1cb-e1d0-4081-93b5-fdda8b71d1d8";
 
@@ -175,7 +274,7 @@ class _AssetTrackerNFCPageState extends State<AssetTrackerNFCPage> {
     String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
 
     var res = await http.get(
-        Uri.encodeFull(getNfcTagDataURL + "/" + _selectedNfcTagId),
+        Uri.encodeFull(baseURL + "/nfc/check-tag/" + _selectedNfcTagId),
         headers: {"Accept": "application/json", "authorization": basicAuth}
     );
 
@@ -275,6 +374,8 @@ class AssetInfo {
   String description;
   String imageURL;
   String supplyInfo;
+  bool transferAuthorized;
+  String transferAuthorizedTo;
   String nfcTagId;
 
 
@@ -285,6 +386,8 @@ class AssetInfo {
     this.description = json['description'];
     this.imageURL = json['imageURL'];
     this.supplyInfo = json['supplyInfo'];
+    this.transferAuthorized = json['transferAuthorized'];
+    this.transferAuthorizedTo = json['transferAuthorizedTo'];
     this.nfcTagId = json['nfcTagId'];
   }
 }
