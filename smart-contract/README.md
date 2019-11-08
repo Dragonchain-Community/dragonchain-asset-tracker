@@ -1,5 +1,11 @@
 # Asset Tracker Smart Contract
 
+This is the Node.js smart contract that should be deployed to an operational Level 1 Dragonchain Business Node. 
+
+You can setup a managed business node by visiting and creating an account at https://console.dragonchain.com
+
+A sample installation command using the DCTL tool from Dragonchain may be found at the bottom of this README. If you are unfamiliar with the development and deployment process for smart contracts on Dragonchain or using the DCTL tool, I recommend you follow my blog series covering [Dragonchain smart contract basics](https://herebedrgns.com/project-baby-devs-first-dragonchain-smart-contract/).
+
 ## Sample Transaction Payloads
 
 Create Custodian:
