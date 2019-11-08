@@ -2,13 +2,13 @@
 
 ## Initialization
 
-After loading the smart contract to an L1, and with your dragonchain credentials file configured per the [Dragonchain SDK docs](https://node-sdk-docs.dragonchain.com/latest/index.html#configuration), initialize your contract with the following command:
+After installing the smart contract to an L1, replace the contract ID in the `config.js` file.
+
+Then, with your dragonchain credentials file configured per the [Dragonchain SDK docs](https://node-sdk-docs.dragonchain.com/latest/index.html#configuration), initialize your contract with the following command (this will create the authority custodian for the contract):
 
 ```node initialize-dc-node.js```
 
-Then copy/paste the resulting authority custodian ID into the `config.js` file.
-
-## Startup
+## API Server Startup
 
 To run normally:
 
