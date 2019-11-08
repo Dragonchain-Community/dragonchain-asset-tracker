@@ -2,6 +2,10 @@
 
 This project demonstrates the core structure of a functional blockchain-enabled asset tracking solution. The project was inspired by the New Balance/Cardano blockchain partnership, and the goal is to demonstrate how quickly and simply such a solution can be built using the power of the [Dragonchain](https://www.dragonchain.com) blockchain platform-as-a-service and its ability to run smart contracts in any language.
 
+## Demo Video
+
+[![Dragonchain Asset Tracker Demo Video](https://herebedrgns.com/wp-content/uploads/2019/11/asset-tracker-demo-screencap.png)](https://herebedrgns.com/current-projects/)
+
 ## Components
 
 There are four components to this solution:
