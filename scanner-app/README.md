@@ -18,6 +18,18 @@ Then run the application in Android Studio with a connected Android or iOS devic
 
 *Note: you may need to manually enable camera and storage permissions for the test app on your device in order to enable QR code scanning support*
 
+## Note On Supported NFC Tags
+
+According to the NFC package developer, the following types of NFC tags are supported for scanning:
+
+| Platform      | Supported NFC Tags |
+| ------------- | ------------- |
+| Android  | **NDEF**: A, B, F, V, BARCODE  |
+| iOS  | **NDEF**: NFC TYPE 1, 2, 3, 4, 5  |
+
+The tags I tested with may be bought on Amazon here:
+https://www.amazon.com/gp/product/B075CFXY8V/
+
 ## Special Thanks
 
 HUGE thanks to [Matteo Crippa](https://github.com/matteocrippa) for his work on the NFC package for Flutter. See his original [Flutter NFC demo here](https://github.com/matteocrippa/flutter-nfc-reader).
