@@ -1,8 +1,8 @@
-# Asset Tracker API Server
+# Dragonchain Asset Tracker API Server
 
 ## Initialization
 
-After loading the smart contract to an L1, and with your dragonchain credentials file configured per the SDK docs, initialize your contract with the following command:
+After loading the smart contract to an L1, and with your dragonchain credentials file configured per the [Dragonchain SDK docs](https://node-sdk-docs.dragonchain.com/latest/index.html#configuration), initialize your contract with the following command:
 
 ```node initialize-dc-node.js```
 

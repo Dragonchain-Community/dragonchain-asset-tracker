@@ -1,4 +1,4 @@
-# Asset Tracker Web Demo
+# Dragonchain Asset Tracker Web Demo
 
 ## Startup
 

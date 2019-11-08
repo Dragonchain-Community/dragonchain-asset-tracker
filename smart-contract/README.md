@@ -24,9 +24,13 @@ Create Asset:
 
 ```{"method":"create_asset", "parameters":{"asset":{"assetGroupId":"12345","external_data":{"id":"serial-12345", "data": {"name":"Nike HMD Runners","color":"Blue/Green","image_url":"https://google.com", "description":"The 2019 edition of the Nike Hand-Me-Down runners in bright ass blue and Hulk-pee green."}}}}, "authentication":{"custodianId":"12345"}}```
 
-Set Asset External Data:
+Set/Add Asset External Data:
 
 ```{"method":"set_asset_external_data", "parameters":{"asset_external_data":{"assetId": "12345", "external_data": {"id":"serial-12345", "data": {"name":"Nike HMD Runners","color":"Blue/Green","image_url":"https://google.com", "description":"The 2019 edition of the Nike Hand-Me-Down runners in bright ass blue and Hulk-pee green."}}}}, "authentication":{"custodianId":"12345"}}```
+
+```{"method":"add_asset_external_data_as_custodian", "parameters":{"asset_external_data":{"assetId": "12345", "external_data": {"data": {"someKey":"someValue"}}}}, "authentication":{"custodianId":"12345"}}```
+
+*Note: add_asset_external_data_as_custodian is a special method to allow non-authority custodians to add (but not modify) new external data*
 
 Authorize Asset Transfer:
 
