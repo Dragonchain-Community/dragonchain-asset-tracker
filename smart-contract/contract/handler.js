@@ -100,7 +100,7 @@ module.exports = async (input, callback) => {
                 const custodians = await helper.getCustodiansByType(client, {type:"authority"})
 
                 if (custodians.length > 0)                
-                    throw "An authority record already exists for this contract instance.";                
+                    throw "An authority record already exists for this contract instance.";               
             } else {
                 if (authenticatedCustodian.type != "authority")
                     throw "Only the authority custodian may create additional custodians.";

@@ -6,6 +6,14 @@ You can setup a managed business node by visiting and creating an account at htt
 
 A sample installation command using the DCTL tool from Dragonchain may be found at the bottom of this README. If you are unfamiliar with the development and deployment process for smart contracts on Dragonchain or using the DCTL tool, I recommend you follow my blog series covering [Dragonchain smart contract basics](https://herebedrgns.com/project-baby-devs-first-dragonchain-smart-contract/).
 
+## Setup Notes
+
+- Note the required indexes for the contract and its API to function correctly. An example DCTL install command that creates all required indexes is included at the bottom of this README.
+- Remember that custom indexes can only be created when the contract is created. You can always delete the contract from your L1 to reinstall, but **previous contract transactions will not be re-indexed** 
+    - This can actually be useful for testing with dummy data before launching a "final" copy of the contract
+- The smart contract should also be installed in **serial** execution mode, **not** parallel to prevent race conditions between contract operations.
+
+
 ## Sample Transaction Payloads
 
 Create Custodian:
