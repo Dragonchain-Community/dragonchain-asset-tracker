@@ -21,6 +21,8 @@ There are four components to this solution:
 
 An "asset" may be considered any kind of "thing," from physical products to software licenses to certifications, that one custodian might create and transfer to another custodian.
 
+An "asset group" is an arbitrary grouping mechanism for individual assets. An asset must belong to an asset group. Asset groups also provide the option to create contract-enforced supply limits for assets (i.e., max supply of 1000 pairs of Nike HMD shoes).
+
 A "custodian" is a person or entity who can take control - or custody - of an asset. There are three kinds of custodians as defined in this project:
 
 - **Authority** custodians are the only type of custodian able to create assets and control certain aspects of them (example: Nike Shoes). There can currently be only one authority custodian per instance of the smart contract
