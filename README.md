@@ -4,7 +4,7 @@ This project demonstrates the core structure of a functional blockchain-enabled 
 
 ## Demo Video
 
-[![Dragonchain Asset Tracker Demo Video](https://herebedrgns.com/wp-content/uploads/2019/11/asset-tracker-demo-screencap.png)](https://herebedrgns.com/current-projects/)
+[![Dragonchain Asset Tracker Demo Video](https://herebedrgns.com/wp-content/uploads/2019/11/asset-tracker-demo-screencap.png)](https://herebedrgns.com/building-a-blockchain-asset-tracker-on-dragonchain-design-considerations/)
 
 ## Components
 
@@ -35,7 +35,7 @@ A "custodian" is a person or entity who can take control - or custody - of an as
 
 The process for transferring an asset is broken into two steps:
 
-1. The **current custodian** of an asset authorizes its transfer. A specific receiving custodian may be specified or the transfer may be left open to any custodian.
+1. The **current custodian** of an asset authorizes its transfer. The receiving custodian may be specified or the transfer may be left open to any custodian.
 2. The **receiving custodian** claims ownership of an asset that has been authorized for transfer.
 
 ## Getting Started
