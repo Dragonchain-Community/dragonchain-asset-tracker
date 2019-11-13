@@ -20,3 +20,4 @@ yarn-error.log*
 .albertignore
 *.map
 firebase-adminsdk.json
+post-run-heap.json

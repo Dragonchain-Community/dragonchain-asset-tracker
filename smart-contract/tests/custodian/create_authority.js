@@ -21,12 +21,12 @@ module.exports = async function (tracker) {
         null
     );
 
-    tracker.client.heap = {...tracker.client.heap, ...result};
+    tracker.client.updateSmartContractHeap(result);
 
     const custodianKey = `custodian-${txnId}`;
     
     return {
-        "heap": tracker.client.heap,
+        "requestTxnId": txnId,        
         "actual": result,        
         "expected": {
             "response": {

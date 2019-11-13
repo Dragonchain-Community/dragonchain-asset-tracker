@@ -3,9 +3,7 @@ const uuid = require("uuid/v4");
 module.exports = async function (tracker) {
 
   const txnId = uuid();
-    
-  const authority = await tracker.getCurrentCustodianObject({custodianId:await tracker.getAuthorityCustodianID()});
-
+  
   await tracker.create_custodian(
       txnId,     
       {
@@ -20,7 +18,7 @@ module.exports = async function (tracker) {
               }
           }
       },
-      authority
+      options.authenticatedCustodian
   );
 
   // Should not succeed, so no return //
