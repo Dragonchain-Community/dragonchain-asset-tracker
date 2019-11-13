@@ -19,7 +19,7 @@ tracker.client = {
         {
             return {
                 "status": 200,
-                "response": JSON.stringify({...this.heap[options.key]}),
+                "response": JSON.stringify(this.heap[options.key]),
                 "ok": true
             }
         }
@@ -41,4 +41,6 @@ tracker.client = {
     // Assert second authority creation attempt throws error //
     assert.rejects(test.custodian.create_authority(tracker));
     
+    // Assert creating an authority AS the authority throws error //
+    assert.rejects(test.custodian.create_authority_as_authority(tracker));
 })();

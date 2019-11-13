@@ -11,7 +11,7 @@ module.exports = {
         const inCustodian = parameters.custodian;
         const inCustodianExternalData = typeof parameters.custodian.external_data !== "undefined" ? parameters.custodian.external_data : undefined;
         
-        if (inCustodian.type == "authority" && authenticatedCustodian == null)
+        if (inCustodian.type == "authority")
         {
             // Be sure there isn't already an authority record //
             let authority = null;
@@ -22,6 +22,10 @@ module.exports = {
 
             if (authority != null)                
                 throw "An authority record already exists for this contract instance.";               
+        
+        } else if (authenticatedCustodian == null)
+        {
+            throw "The authenticated authority custodian must be provided.";
         } else {
             if (authenticatedCustodian.type != "authority")
                 throw "Only the authority custodian may create additional custodians.";
