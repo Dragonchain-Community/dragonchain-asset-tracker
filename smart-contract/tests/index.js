@@ -2,9 +2,7 @@ const fs = require('fs');
 const assert = require("assert");
 const tracker = require("../contract/asset-tracker");
 
-const test = {
-    index: 0,
-
+const test = {    
     custodian: {
         create_authority: require("./custodian/create_authority"),            
         create_authority_as_authority: require("./custodian/create_authority_as_authority"),
@@ -123,10 +121,12 @@ tracker.client = {
     // Assert claiming an asset authorized for transfer to a specific custodian as the correct custodian succeeds //
 
 
-    
+
     // ************* POST ASSET TRANSFER TESTS ************* //
 
     // Assert adding external data as non-authority custodian of an asset succeeds //
+
+    // Assert adding external data as non-custodian of an asset fails //
 
     
     console.log("Tests passed.");

@@ -13,7 +13,7 @@ module.exports = async input => {
     try {
         tracker.client = await dcsdk.createClient();
 
-        const authenticatedCustodian = typeof inputObj.payload.authentication !== "undefined" ? await tracker.getCurrentCustodianObject({custodianId: inAuthentication.custodianId}) : null;
+        const authenticatedCustodian = typeof inputObj.payload.authentication !== "undefined" ? await tracker.getCurrentCustodianObject({custodianId: inputObj.payload.authentication.custodianId}) : null;
 
         const output = await Reflect.apply(
             tracker[inputObj.payload.method], 
