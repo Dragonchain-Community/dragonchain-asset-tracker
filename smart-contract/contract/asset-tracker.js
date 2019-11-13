@@ -387,8 +387,6 @@ module.exports = {
         try {
             const custodianObjectResponse = await this.client.getSmartContractObject({key:`authority-custodian-id`})
 
-            console.log(custodianObjectResponse);
-
             const responseObj = JSON.parse(custodianObjectResponse.response);
             
             if (responseObj.error)
