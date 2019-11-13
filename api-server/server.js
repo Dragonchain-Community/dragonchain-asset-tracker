@@ -405,7 +405,7 @@ const main = async() => {
 		const assetGroupObject = await helper.getCurrentAssetGroupObject(client, {assetGroupId: req.body.asset.assetGroupId});
 
 		// Ensure we aren't violating max supply //
-		if (assetGroupObject.issuedSupply + 1 > assetGroupObject.maxSupply)
+		if (assetGroupObject.maxSupply != null && assetGroupObject.issuedSupply + 1 > assetGroupObject.maxSupply)
 			throw "Max supply has been reached for the selected asset group.";
 
 		let asset = {			

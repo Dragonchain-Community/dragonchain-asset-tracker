@@ -149,7 +149,7 @@ module.exports = {
         const assetGroupObject = await this.getCurrentAssetGroupObject({assetGroupId: inAsset.assetGroupId});
 
         // Ensure we aren't violating max supply //
-        if (assetGroupObject.issuedSupply + 1 > assetGroupObject.maxSupply)
+        if (assetGroupObject.maxSupply != null && assetGroupObject.issuedSupply + 1 > assetGroupObject.maxSupply)
             throw `Max supply has been reached for asset group ${assetGroupObject.name}.`;
 
         let responseObj = {         
