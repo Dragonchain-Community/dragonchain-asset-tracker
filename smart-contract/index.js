@@ -1,16 +1,14 @@
-'use strict'
 const getStdin = require('get-stdin');
 const handler = require('./contract/handler');
 
-getStdin().then(val => {
-    handler(val, (err, res) => {        
-        if (res) {
-            process.stdout.write(JSON.stringify(res));
-        }
-        if (err) {
-            return console.error(err);
-        }
-    });
-}).catch(e => {
-    console.error(e.stack);
-});
+async function main() {
+  const val = await getStdin();
+  try {
+    const res = await handler(val);
+    process.stdout.write(JSON.stringify(res));
+  } catch (err) {
+    return console.error(err);
+  }
+}
+
+main().catch(console.error);
