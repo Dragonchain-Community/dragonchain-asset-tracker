@@ -12,6 +12,9 @@ const test = {
     asset_group: {
         create_asset_group_limited: require("./asset_group/create_asset_group_limited"),
         create_asset_group_unlimited: require("./asset_group/create_asset_group_unlimited")
+    },
+    asset: {
+        create_asset_with_external_data: require("./asset/create_asset_with_external_data")
     }
 };
 
@@ -55,13 +58,13 @@ tracker.client = {
     assert.deepStrictEqual(result.actual, result.expected, "Create Authority Custodian");
 
     // Assert second authority creation attempt throws error //
-    assert.rejects(test.custodian.create_authority(tracker), "Create Second Authority Custodian");
+    await assert.rejects(test.custodian.create_authority(tracker), "Create Second Authority Custodian");
 
     // Get the contract's authority custodian object //
     const authority = await tracker.getCurrentCustodianObject({custodianId: result.requestTxnId});
     
     // Assert creating an authority AS the authority throws error //
-    assert.rejects(test.custodian.create_authority_as_authority(tracker, {authenticatedCustodian: authority}), "Create Authority AS Authority");
+    await assert.rejects(test.custodian.create_authority_as_authority(tracker, {authenticatedCustodian: authority}), "Create Authority AS Authority");
 
     // Assert creating a non-authority succeeds //
     result = await test.custodian.create_non_authority(tracker, {authenticatedCustodian: authority});
@@ -72,7 +75,7 @@ tracker.client = {
     const custodian = await tracker.getCurrentCustodianObject({custodianId: result.requestTxnId});
 
     // Assert creating a non-authority as a non-authority throws error //
-    assert.rejects(test.custodian.create_non_authority(tracker, {authenticatedCustodian: custodian}), "Create Custodian as Non-Authority");
+    await assert.rejects(test.custodian.create_non_authority(tracker, {authenticatedCustodian: custodian}), "Create Custodian as Non-Authority");
 
     // Assert setting a custodian's external data as authority succeeds //
     result = await test.custodian.set_external_data(tracker, {custodian: custodian, authenticatedCustodian: authority});
@@ -80,17 +83,17 @@ tracker.client = {
     assert.deepStrictEqual(result.actual, result.expected, "Set Custodian External Data ");
 
     // Assert setting a custodian's external data as NON-authority throws //
-    assert.rejects(test.custodian.set_external_data(tracker, {custodian: custodian, authenticatedCustodian: custodian}), "Set Custodian External Data as Non-Authority");
+    await assert.rejects(test.custodian.set_external_data(tracker, {custodian: custodian, authenticatedCustodian: custodian}), "Set Custodian External Data as Non-Authority");
 
     
     
     // ************* ASSET GROUP TESTS ************* //
 
     // Assert creating an asset group as non-authority fails //
-    assert.rejects(test.asset_group.create_asset_group_limited(tracker, {authenticatedCustodian: custodian, maxSupply: 1}), "Create Asset Group as Non-Authority");
+    await assert.rejects(test.asset_group.create_asset_group_limited(tracker, {authenticatedCustodian: custodian, maxSupply: 1}), "Create Asset Group as Non-Authority");
 
     // Assert creating an asset group with invalid maxSupply fails //
-    assert.rejects(test.asset_group.create_asset_group_limited(tracker, {authenticatedCustodian: authority, maxSupply: "one"}), "Create Asset Group with Invalid MaxSupply");
+    await assert.rejects(test.asset_group.create_asset_group_limited(tracker, {authenticatedCustodian: authority, maxSupply: "one"}), "Create Asset Group with Invalid MaxSupply");
     
     // Assert creating a limited supply asset group succeeds //
     result = await test.asset_group.create_asset_group_limited(tracker, {authenticatedCustodian: authority, maxSupply: 1});
@@ -110,12 +113,18 @@ tracker.client = {
     // ************* ASSET TESTS ************* //
 
     // Assert creating an asset as non-authority fails //
+    await assert.rejects(test.asset.create_asset_with_external_data(tracker, {authenticatedCustodian: custodian, assetGroupId: unlimitedAssetGroup.id}), "Create Asset As Non-Authority");
 
     // Assert creating an asset in unlimited group with external data succeeds //
+    result = await test.asset.create_asset_with_external_data(tracker, {authenticatedCustodian: authority, assetGroupId: unlimitedAssetGroup.id})
+
+    assert.deepStrictEqual(result.actual, result.expected, "Create Asset in Unlimited Supply Asset Group");
 
     // Assert creating an asset in group limited to 1 succeeds without external data //
 
     // Assert creating a second asset in group limited to 1 fails //
+
+    // Assert creating an asset with an approved transfer authorization succeeds //
 
     // Assert setting an asset's external data as authority succeeds //
 
