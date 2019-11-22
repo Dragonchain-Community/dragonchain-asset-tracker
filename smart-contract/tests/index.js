@@ -147,7 +147,7 @@ tracker.client = {
 
     // Assert authorizing an already authorized for transfer asset FAILS //
 
-    // Assert authorzing an asset for transfer to a specific custodian succeeds //
+    // Assert authorizing an asset for transfer to a specific custodian succeeds //
 
     // Assert claiming an asset authorized for transfer to ANY custodian succeeds //
 
