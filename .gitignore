@@ -9,6 +9,7 @@ dist
 
 # testing
 coverage
+heap/*
 
 # misc
 .idea/

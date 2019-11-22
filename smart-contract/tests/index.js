@@ -14,7 +14,8 @@ const test = {
         create_asset_group_unlimited: require("./asset_group/create_asset_group_unlimited")
     },
     asset: {
-        create_asset_with_external_data: require("./asset/create_asset_with_external_data")
+        create_asset_with_external_data: require("./asset/create_asset_with_external_data"),
+        create_asset_without_external_data: require("./asset/create_asset_without_external_data")
     }
 };
 
@@ -120,13 +121,23 @@ tracker.client = {
 
     assert.deepStrictEqual(result.actual, result.expected, "Create Asset in Unlimited Supply Asset Group");
 
+    const assetWithExternalData = await tracker.getCurrentAssetObject({assetId: result.requestTxnId});
+
     // Assert creating an asset in group limited to 1 succeeds without external data //
+    result = await test.asset.create_asset_without_external_data(tracker, {authenticatedCustodian: authority, assetGroupId: limitedAssetGroup.id})
+
+    assert.deepStrictEqual(result.actual, result.expected, "Create Asset in Limited Supply Asset Group");
+
+    const assetWithoutExternalData = await tracker.getCurrentAssetObject({assetId: result.requestTxnId});
 
     // Assert creating a second asset in group limited to 1 fails //
+    await assert.rejects(test.asset.create_asset_without_external_data(tracker, {authenticatedCustodian: authority, assetGroupId: limitedAssetGroup.id}), "Create Asset in Limited Group Already at Max Supply");
 
     // Assert creating an asset with an approved transfer authorization succeeds //
 
     // Assert setting an asset's external data as authority succeeds //
+
+    // Assert setting an asset's external data as NON-authority FAILS //
 
 
 
