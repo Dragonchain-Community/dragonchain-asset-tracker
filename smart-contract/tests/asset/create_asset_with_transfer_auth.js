@@ -12,7 +12,17 @@ module.exports = async function (tracker, options) {
         txnId,     
         {
             "asset": {
-                "assetGroupId":options.assetGroupId
+              "assetGroupId":options.assetGroupId,
+              "external_data": {
+                "id":"7890",
+                "data": {
+                  "name": "Asset w/Transfer Auth Name",
+                  "description": "Asset w/Transfer Auth Description"
+                }
+              }
+            },
+            "asset_transfer_authorization": {
+              "toCustodianId": options.toCustodianId
             }
         },
         options.authenticatedCustodian
@@ -33,7 +43,7 @@ module.exports = async function (tracker, options) {
         "actual": result,        
         "expected": {
             "response": {
-              "type": "asset,asset_transfer",
+              "type": "asset,asset_transfer,asset_external_data,asset_transfer_authorization",
               "asset": {
                   "id": txnId,
                   "custodianId": options.authenticatedCustodian.id,
@@ -49,6 +59,23 @@ module.exports = async function (tracker, options) {
                   "assetTransferAuthorizationId": null,
                   "fromCustodianId": null,
                   "toCustodianId": options.authenticatedCustodian.id
+              },
+              "asset_external_data": {
+                "id": txnId,
+                "assetId": txnId,
+                "external_data": {
+                  "id": "7890",
+                  "data": {
+                    "name": "Asset w/Transfer Auth Name",
+                    "description": "Asset w/Transfer Auth Description"
+                  }
+                }
+              },
+              "asset_transfer_authorization": {
+                "id": txnId,
+                "assetId": txnId,
+                "fromCustodianId": options.authenticatedCustodian.id,
+                "toCustodianId": options.toCustodianId
               }
             },
             [custodianKey]: custodianPreAction,
@@ -67,8 +94,19 @@ module.exports = async function (tracker, options) {
                 "fromCustodianId": null,
                 "toCustodianId": options.authenticatedCustodian.id
               },
-              "current_transfer_authorization": null,
-              "current_external_data": null
+              "current_transfer_authorization": {
+                "id": txnId,
+                "assetId": txnId,
+                "fromCustodianId": options.authenticatedCustodian.id,
+                "toCustodianId": options.toCustodianId
+              },
+              "current_external_data": {
+                "id": "7890",
+                "data": {
+                  "name": "Asset w/Transfer Auth Name",
+                  "description": "Asset w/Transfer Auth Description"
+                }
+              }
             },
             [assetGroupKey]: {
               "id": assetGroupPreAction.id,

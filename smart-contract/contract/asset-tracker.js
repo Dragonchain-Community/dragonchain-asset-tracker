@@ -311,7 +311,7 @@ module.exports = {
         // The from custodian can only be the current holder of the asset //
         let fromCustodian = await this.getCurrentCustodianObject({custodianId: asset.last_transfer.toCustodianId});
 
-        let toCustodian = typeof inAssetTransferAuthorization.toCustodianId !== "undefined" ? await this.getCurrentCustodianObject({custodianId: inAssetTransferAuthorization.toCustodianId}) : undefined;
+        let toCustodian = typeof inAssetTransferAuthorization.toCustodianId !== "undefined" && inAssetTransferAuthorization.toCustodianId != null ? await this.getCurrentCustodianObject({custodianId: inAssetTransferAuthorization.toCustodianId}) : undefined;
         
         if (authenticatedCustodian.id != fromCustodian.id)
             throw "Only the current custodian of an asset may authorize its transfer.";

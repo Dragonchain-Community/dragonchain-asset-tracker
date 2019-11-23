@@ -33,7 +33,11 @@ module.exports = async function (tracker, options) {
 
     const custodianKey = `custodian-${options.authenticatedCustodian.id}`;
 
-    custodianPreAction.assets.push(txnId);
+    // NOTE: The "copy" of the custodian object was a "shallow clone", so objects deeper than the first layer are copied whole by reference //
+    //       Pushing the new asset to the copied object would then result in TWO copies of the asset being added to the assets array. //
+    //       Not sure it's worth it to fix for testing purposes/expected values setup, but good to be aware of it. //
+    
+    // custodianPreAction.assets.push(txnId);
     
     return {
         "requestTxnId": txnId,        
