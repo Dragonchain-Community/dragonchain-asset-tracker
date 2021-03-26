@@ -4,7 +4,7 @@ This project demonstrates the core structure of a functional blockchain-enabled 
 
 ## Demo Video
 
-[![Dragonchain Asset Tracker Demo Video](https://herebedrgns.com/wp-content/uploads/2019/11/asset-tracker-demo-screencap.png)](https://herebedrgns.com/building-a-blockchain-asset-tracker-on-dragonchain-design-considerations/)
+[Dragonchain Asset Tracker Demo Video](https://www.youtube.com/watch?v=wbW6X7qVs4Q)
 
 ## Components
 
